@@ -1213,3 +1213,45 @@
 
 </body>
 </html>
+```
+
+**Các thay đổi chính:**
+
+1.  **Khởi tạo `userDecks = [];`**: Ở đầu script chính (bên trong `DOMContentLoaded`), tôi đã thêm dòng `let userDecks = [];` để đảm bảo biến này luôn được khởi tạo là một mảng rỗng trước khi bất kỳ hàm nào cố gắng sử dụng nó.
+2.  **Định nghĩa `checkTypingAnswer` trước khi gán sự kiện**:
+    * Hàm `checkTypingAnswer` đã được định nghĩa đầy đủ **trước** khi các dòng `addEventListener` cho `submitTypingAnswerBtn` và `typingInput` được gọi trong `setupEventListeners`. Điều này đảm bảo hàm đã tồn tại khi gán sự kiện.
+3.  **Gán các hàm vào `window`**: Các hàm `updateSidebarFilterVisibility`, `updateMainHeaderTitle`, `loadVocabularyData`, và `updateFlashcard` được gán vào `window` **sau khi chúng đã được định nghĩa đầy đủ** bên trong `DOMContentLoaded` của script chính. Điều này đảm bảo script xác thực có thể gọi chúng một cách chính xác.
+4.  **Cải thiện `loadUserDecks()`**:
+    ```javascript
+    function loadUserDecks() { 
+        const currentUserId = window.authFunctions.getCurrentUserId(); 
+        if (!currentUserId) { 
+            userDecks = []; 
+            return; 
+        } 
+        console.warn("loadUserDecks: Cần load từ Firestore"); 
+        try { 
+            const d = localStorage.getItem(userDecksStorageKey); 
+            const parsedDecks = d ? JSON.parse(d) : null; // Parse first
+            userDecks = Array.isArray(parsedDecks) ? parsedDecks : []; // Ensure it's an array
+        } catch (e) { 
+            userDecks = []; 
+        } 
+    }
+    ```
+    Trong hàm `loadUserDecks`, tôi đã thêm một bước kiểm tra `Array.isArray(parsedDecks)` để đảm bảo rằng `userDecks` chỉ được gán giá trị nếu `parsedDecks` thực sự là một mảng. Nếu không, `userDecks` sẽ được gán lại thành `[]`.
+5.  **Kiểm tra `Array.isArray(userDecks)` trong các hàm liên quan đến Deck**:
+    * Trong `populateDeckSelects`, `renderExistingDecksList`, `createDeck`, `updateDeckName`, và `openAddEditModal`, tôi đã thêm các kiểm tra `Array.isArray(userDecks)` trước khi thực hiện các thao tác như `.sort()`, `.some()`, `.findIndex()`, hoặc truy cập `.length` để tránh lỗi nếu `userDecks` không phải là một mảng.
+
+**Giải thích thêm về lỗi `userDecks`:**
+
+Lỗi "Cannot read properties of undefined (reading 'sort')" hoặc "Cannot read properties of undefined (reading 'length')" xảy ra khi bạn cố gắng thực hiện một thao tác dành cho mảng (như `sort` hoặc `length`) trên một biến không phải là mảng, hoặc là `undefined` hoặc `null`.
+
+Trong trường hợp của chúng ta:
+* `userDecks` được khai báo là `let userDecks = [];` ở đầu script.
+* Hàm `loadUserDecks` đọc từ `localStorage`. Nếu `localStorage` không có `userDecksStorageKey`, hoặc giá trị lưu trữ là chuỗi `"null"`, thì `JSON.parse()` có thể trả về `null`. Khi đó, `userDecks` sẽ bị gán thành `null`.
+* Sau đó, nếu một hàm như `populateDeckSelects` được gọi và cố gắng `userDecks.sort()`, nó sẽ gây lỗi vì `null` không có phương thức `sort`.
+
+Bằng cách đảm bảo `loadUserDecks` luôn gán một mảng (dù là rỗng) cho `userDecks`, và thêm các kiểm tra `Array.isArray(userDecks)` ở những nơi cần thiết, chúng ta có thể phòng tránh các lỗi này.
+
+Hãy thử nghiệm lại với phiên bản này và xem console log có thay đổi gì không n
