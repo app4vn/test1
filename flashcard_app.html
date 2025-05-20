@@ -1585,19 +1585,3 @@
 
 </body>
 </html>
-```
-
-**Tóm tắt các thay đổi chính trong `addNewDeckBtn.addEventListener('click', ...)`:**
-
-1.  **Kiểm tra tên bộ thẻ rỗng:** Thêm kiểm tra `if (!deckName)` để đảm bảo người dùng nhập tên.
-2.  **Cập nhật `appState` trước:**
-    * `appState.lastSelectedDeckId = createdDeck.id;`
-    * Lấy `stateForCurrentCategory` và cập nhật `stateForCurrentCategory.deckId = createdDeck.id;`.
-    * Quan trọng nhất: `saveAppState();` được gọi để lưu những thay đổi này.
-3.  **Cập nhật UI:** `userDeckSelect.value = createdDeck.id;` để đảm bảo dropdown hiển thị đúng bộ thẻ mới.
-4.  **Tải lại dữ liệu:** `loadVocabularyData(categorySelect.value);` bây giờ sẽ đọc `appState` đã được cập nhật và hoạt động chính xác.
-5.  **Cập nhật tiêu đề:** `updateMainHeaderTitle();`
-
-Với những thay đổi này, khi bạn tạo một bộ thẻ mới, trạng thái ứng dụng sẽ được cập nhật đúng cách, và bộ thẻ mới sẽ được chọn và hiển thị ngay lập tức.
-
-Bạn có thể sao chép toàn bộ mã này và sử dụng. Hãy nhớ kiểm tra kỹ lại trên trình duyệt của bạn n
