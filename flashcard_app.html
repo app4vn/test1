@@ -742,6 +742,14 @@
             "adjectives": [ { "word": "Happy", "pronunciation": "/ˈhæpi/", "category": "adjectives", "meanings": [ { "id": generateUniqueId('m'), "text": "Cảm thấy hoặc thể hiện sự vui vẻ, hài lòng.", "notes": "", "examples": [ { "id": generateUniqueId('ex'), "eng": "She looks very happy.", "vie": "Cô ấy trông rất vui." } ]}], "generalNotes": "" } ]
         };
 
+        // Assign to window for auth script
+        window.wordDisplay = wordDisplay; 
+        window.updateSidebarFilterVisibility = updateSidebarFilterVisibility;
+        window.updateMainHeaderTitle = updateMainHeaderTitle;
+        window.loadVocabularyData = loadVocabularyData;
+        window.updateFlashcard = updateFlashcard; // Renamed originalUpdateFlashcard to updateFlashcard
+
+
         setupInitialCategoryAndSource(); 
         setupEventListeners(); 
 
@@ -781,14 +789,14 @@
         function openSidebar(){filterSidebar.classList.remove('-translate-x-full');filterSidebar.classList.add('translate-x-0');sidebarOverlay.classList.remove('hidden');updateSidebarFilterVisibility();}
         function closeSidebar(){filterSidebar.classList.add('-translate-x-full');filterSidebar.classList.remove('translate-x-0');sidebarOverlay.classList.add('hidden');}
         
-        window.updateSidebarFilterVisibility = function (){ // Made global
+        function updateSidebarFilterVisibility (){ 
             const cat=categorySelect.value;
             const isPV=cat==='phrasalVerbs';
             baseVerbFilterContainer.style.display=isPV?'block':'none';
             tagFilterContainer.style.display=isPV?'block':'none';
             
             const isUserSource = cardSourceSelect.value === 'user';
-            const currentUserId = window.authFunctions.getCurrentUserId(); // Get from auth script
+            const currentUserId = window.authFunctions.getCurrentUserId(); 
             const isLoggedIn = !!currentUserId;
 
             userDeckFilterContainer.style.display = isUserSource ? 'block' : 'none';
@@ -799,7 +807,7 @@
             if (openAddCardModalBtn) openAddCardModalBtn.disabled = !isUserSource || !isLoggedIn;
         }
         
-        window.updateMainHeaderTitle = function() { // Made global
+        function updateMainHeaderTitle() { 
             const currentUserId = window.authFunctions.getCurrentUserId();
             const sourceText = currentDatasetSource === 'web' ? "Thẻ của Web" : (currentUserId ? "Thẻ của Tôi" : "Thẻ của Web"); 
             let deckText = "";
@@ -889,7 +897,7 @@
             const currentUserId = window.authFunctions.getCurrentUserId();
             clearLearningTimer();const cCV=categorySelect.value;const sFCSC=getCategoryState(currentDatasetSource,cCV);let cST=searchInput.value.trim().toLowerCase();if(!fromLoad){if(cCV==='phrasalVerbs'){sFCSC.baseVerb=baseVerbSelect.value;sFCSC.tag=tagSelect.value;}if(currentDatasetSource==='user' && currentUserId)sFCSC.deckId=userDeckSelect.value;sFCSC.filterMarked=filterCardStatusSelect.value;sFCSC.currentIndex=0;}let lTP=[...activeMasterList];if(currentDatasetSource==='user' && currentUserId){const sDI=sFCSC.deckId||userDeckSelect.value;if(sDI&&sDI!=='all_user_cards'){if(sDI==='unassigned_cards')lTP=lTP.filter(i=>!i.deckId);else lTP=lTP.filter(i=>i.deckId===sDI);}}if(currentDatasetSource==='user' && currentUserId)lTP=lTP.filter(i=>i.category===cCV);if(cCV==='phrasalVerbs'){if(sFCSC.baseVerb&&sFCSC.baseVerb!=='all')lTP=lTP.filter(i=>i.baseVerb===sFCSC.baseVerb);if(sFCSC.tag&&sFCSC.tag!=='all')lTP=lTP.filter(i=>i.tags&&i.tags.includes(sFCSC.tag));}if(cST){lTP=lTP.filter(i=>{const wOP=(i.category==='phrasalVerbs'?i.phrasalVerb:i.word)||'';if(wOP.toLowerCase().includes(cST))return true;if(i.meanings&&i.meanings.some(m=>m.text.toLowerCase().includes(cST)))return true;if(i.meanings){for(const meaning of i.meanings){if(meaning.examples && meaning.examples.some(ex => ex.eng.toLowerCase().includes(cST) || (ex.vie && ex.vie.toLowerCase().includes(cST)) )) return true;}}return false;});}const sFV=sFCSC.filterMarked;if(sFV!=='all_visible'){lTP=lTP.filter(i=>{const id=getCardIdentifier(i,i.category);const sO=getCardStatus(id,i.category,i.isUserCard);const sV=sO.status;if(sFV==='all_study')return sV==='new'||sV==='learning';if(sFV==='new')return sV==='new';if(sFV==='learning')return sV==='learning';if(sFV==='learned')return sV==='learned';return true;});}window.currentData=lTP;if(fromLoad){let nI=sFCSC.currentIndex||0;if(window.currentData.length===0)nI=0;else{nI=Math.min(nI,window.currentData.length-1);nI=Math.max(0,nI);}window.currentIndex=nI;}else window.currentIndex=0;sFCSC.currentIndex=window.currentIndex;saveAppState();window.updateFlashcard();window.updateMainHeaderTitle();}
 
-        window.loadVocabularyData = async function (category) { // Made global
+        function loadVocabularyData (category) { 
             const currentUserId = window.authFunctions.getCurrentUserId();
             clearLearningTimer();
             wordDisplay.innerHTML = '<span class="text-slate-500">Đang tải...</span>';
@@ -918,18 +926,33 @@
                 userDeckSelect.value = stateForCurrentSourceCategory.deckId || appState.lastSelectedDeckId || 'all_user_cards';
                 activeMasterList = loadUserCards().map(card => ({...card, isUserCard: true})); 
             } else { 
-                 try {
-                    const response = await fetch(`data/${category}.json?v=${new Date().getTime()}`);
-                    if (!response.ok) { console.warn(`Lỗi HTTP: ${response.status} khi tải ${category}.json. Sử dụng dữ liệu mẫu.`); throw new Error(`HTTP error ${response.status}`); }
-                    const jsonData = await response.json();
-                    if (jsonData && jsonData[category] && jsonData[category].length > 0) { activeMasterList = jsonData[category].map(card => ({ ...card, isUserCard: false, category: category, meanings: card.meanings || (card.meaning ? [{ id: generateUniqueId('wm'), text: card.meaning, notes: card.notes || '', examples: (card.example ? [{id: generateUniqueId('wex'), eng: card.example.replace(/^Ví dụ:\s*/i,'').trim(), vie: card.exampleVie || '', exampleNotes:''}] : []) }] : []), generalNotes: card.generalNotes || (card.notes && !card.meaning ? card.notes : '') })); } 
-                    else { console.warn(`Không có dữ liệu trong ${category}.json. Sử dụng dữ liệu mẫu.`); throw new Error('Empty JSON data'); }
-                } catch (error) {
-                    console.error(`Lỗi tải dữ liệu Web cho '${category}':`, error.message);
-                    if (sampleData[category] && sampleData[category].length > 0) { activeMasterList = sampleData[category].map(card => ({...card, isUserCard: false, category: category})); console.log(`Đã tải dữ liệu mẫu cho '${category}'.`); } 
-                    else { activeMasterList = []; console.log(`Không có dữ liệu mẫu cho '${category}'.`); }
-                }
+                 fetch(`data/${category}.json?v=${new Date().getTime()}`)
+                    .then(response => {
+                        if (!response.ok) { console.warn(`Lỗi HTTP: ${response.status} khi tải ${category}.json. Sử dụng dữ liệu mẫu.`); throw new Error(`HTTP error ${response.status}`); }
+                        return response.json();
+                    })
+                    .then(jsonData => {
+                        if (jsonData && jsonData[category] && jsonData[category].length > 0) { activeMasterList = jsonData[category].map(card => ({ ...card, isUserCard: false, category: category, meanings: card.meanings || (card.meaning ? [{ id: generateUniqueId('wm'), text: card.meaning, notes: card.notes || '', examples: (card.example ? [{id: generateUniqueId('wex'), eng: card.example.replace(/^Ví dụ:\s*/i,'').trim(), vie: card.exampleVie || '', exampleNotes:''}] : []) }] : []), generalNotes: card.generalNotes || (card.notes && !card.meaning ? card.notes : '') })); } 
+                        else { console.warn(`Không có dữ liệu trong ${category}.json. Sử dụng dữ liệu mẫu.`); throw new Error('Empty JSON data'); }
+                    })
+                    .catch(error => {
+                        console.error(`Lỗi tải dữ liệu Web cho '${category}':`, error.message);
+                        if (sampleData[category] && sampleData[category].length > 0) { activeMasterList = sampleData[category].map(card => ({...card, isUserCard: false, category: category})); console.log(`Đã tải dữ liệu mẫu cho '${category}'.`); } 
+                        else { activeMasterList = []; console.log(`Không có dữ liệu mẫu cho '${category}'.`); }
+                    })
+                    .finally(() => { // Ensure filters are applied after data is potentially loaded
+                        window.updateSidebarFilterVisibility(); 
+                        baseVerbSelect.innerHTML = ''; tagSelect.innerHTML = '';
+                        if (category !== 'phrasalVerbs') { stateForCurrentSourceCategory.baseVerb = 'all'; stateForCurrentSourceCategory.tag = 'all'; }
+                        
+                        activeMasterList = shuffleArray(activeMasterList);
+                        const relevantCardsForFilters = (currentDatasetSource === 'web' || !currentUserId) ? activeMasterList : activeMasterList.filter(card => card.category === category);
+                        if (category === 'phrasalVerbs' && relevantCardsForFilters.length > 0) { populateBaseVerbFilter(relevantCardsForFilters); populateTagFilter(relevantCardsForFilters); baseVerbSelect.value = stateForCurrentSourceCategory.baseVerb || 'all'; tagSelect.value = stateForCurrentSourceCategory.tag || 'all'; }
+                        applyAllFilters(true);
+                    });
+                    return; // Return here because the rest of the logic is in .finally()
             }
+            // This part will only be reached for user source or if fetch is synchronous (which it is not)
             window.updateSidebarFilterVisibility(); 
             baseVerbSelect.innerHTML = ''; tagSelect.innerHTML = '';
             if (category !== 'phrasalVerbs') { stateForCurrentSourceCategory.baseVerb = 'all'; stateForCurrentSourceCategory.tag = 'all'; }
@@ -940,7 +963,7 @@
             applyAllFilters(true);
         }
         
-        window.updateFlashcard = function() { 
+        function updateFlashcard() { 
             const currentUserId = window.authFunctions.getCurrentUserId();
             clearLearningTimer(); currentAnswerChecked = false;
             feedbackMessage.textContent = ''; feedbackMessage.className = 'mt-3 p-3 hidden';
@@ -1152,7 +1175,6 @@
             loadVocabularyData(categorySelect.value); 
         }
         
-        window.wordDisplay = wordDisplay; 
       }); // END DOMContentLoaded
     </script>
 
