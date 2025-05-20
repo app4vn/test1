@@ -770,13 +770,42 @@
         function addMeaningBlockToEnd(meaningBlockData) { meaningBlocksContainer.appendChild(createMeaningBlockElement(meaningBlockData)); updateRemoveMeaningBlockButtonsState(); }
         function updateRemoveMeaningBlockButtonsState() { const meaningBlocks = meaningBlocksContainer.querySelectorAll('.meaning-block'); meaningBlocks.forEach(block => { const removeBtn = block.querySelector('.remove-meaning-block-btn'); if (removeBtn) removeBtn.disabled = meaningBlocks.length <= 1; }); }
 
-        function loadUserDecks() { const currentUserId = window.authFunctions.getCurrentUserId(); if (!currentUserId) { userDecks = []; return; } console.warn("loadUserDecks: Cần load từ Firestore"); try { const d = localStorage.getItem(userDecksStorageKey); userDecks = d ? JSON.parse(d) : []; } catch (e) { userDecks = []; } }
+        function loadUserDecks() { 
+            const currentUserId = window.authFunctions.getCurrentUserId(); 
+            if (!currentUserId) { 
+                userDecks = []; 
+                return; 
+            } 
+            console.warn("loadUserDecks: Cần load từ Firestore"); 
+            try { 
+                const d = localStorage.getItem(userDecksStorageKey); 
+                const parsedDecks = d ? JSON.parse(d) : null; // Parse first
+                userDecks = Array.isArray(parsedDecks) ? parsedDecks : []; // Ensure it's an array
+            } catch (e) { 
+                userDecks = []; 
+            } 
+        }
         function saveUserDecks() { const currentUserId = window.authFunctions.getCurrentUserId(); if (!currentUserId) return; console.warn("saveUserDecks: Cần save vào Firestore"); try { localStorage.setItem(userDecksStorageKey, JSON.stringify(userDecks)); } catch (e) {} }
         function generateDeckId() { return `deck_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`; } 
-        function createDeck(name) { const currentUserId = window.authFunctions.getCurrentUserId(); if (!currentUserId) { alert("Vui lòng đăng nhập để tạo bộ thẻ."); return null; } if (!name || !name.trim()) { alert("Tên bộ thẻ trống!"); return null; } if (userDecks.some(d => d.name.toLowerCase() === name.trim().toLowerCase())) { alert("Tên bộ thẻ đã tồn tại!"); return null; } const newDeck = { id: generateDeckId(), name: name.trim(), createdAt: Date.now() }; userDecks.push(newDeck); saveUserDecks(); populateDeckSelects(); renderExistingDecksList(); return newDeck; }
-        function updateDeckName(id, newName) { const currentUserId = window.authFunctions.getCurrentUserId(); if (!currentUserId) { alert("Vui lòng đăng nhập."); return false; } if (!newName || !newName.trim()) { alert("Tên bộ thẻ trống!"); return false; } if (userDecks.some(d => d.id !== id && d.name.toLowerCase() === newName.trim().toLowerCase())) { alert("Tên bộ thẻ đã tồn tại!"); return false; } const idx = userDecks.findIndex(d => d.id === id); if (idx > -1) { userDecks[idx].name = newName.trim(); saveUserDecks(); populateDeckSelects(); renderExistingDecksList(); updateMainHeaderTitle(); return true; } return false; }
-        function populateDeckSelects() { userDeckSelect.innerHTML = '<option value="all_user_cards">Tất cả thẻ của tôi</option><option value="unassigned_cards">Thẻ chưa có bộ</option>'; userDecks.sort((a,b)=>a.name.localeCompare(b.name,'vi')).forEach(d=>{const o=document.createElement('option');o.value=d.id;o.textContent=d.name;userDeckSelect.appendChild(o);}); cardDeckAssignmentSelect.innerHTML='<option value="">-- Chọn bộ thẻ --</option>'; userDecks.forEach(d=>{const o=document.createElement('option');o.value=d.id;o.textContent=d.name;cardDeckAssignmentSelect.appendChild(o);});}
-        function renderExistingDecksList() { existingDecksList.innerHTML = ''; if (!userDecks.length) { existingDecksList.innerHTML = '<p>Chưa có bộ thẻ.</p>'; return; } userDecks.sort((a,b)=>a.name.localeCompare(b.name,'vi')).forEach(d=>{const i=document.createElement('div');i.className='deck-item flex justify-between items-center p-2 border rounded';i.dataset.deckId=d.id;const n=document.createElement('span');n.className='deck-name-display';n.textContent=d.name;const a=document.createElement('div');a.className='deck-actions';const e=document.createElement('button');e.className='edit-deck-btn text-blue-500 p-1';e.innerHTML='<i class="fas fa-edit"></i>';e.onclick=()=>startEditDeckName(d.id,i);a.appendChild(e);i.appendChild(n);i.appendChild(a);existingDecksList.appendChild(i);});}
+        function createDeck(name) { const currentUserId = window.authFunctions.getCurrentUserId(); if (!currentUserId) { alert("Vui lòng đăng nhập để tạo bộ thẻ."); return null; } if (!name || !name.trim()) { alert("Tên bộ thẻ trống!"); return null; } if (Array.isArray(userDecks) && userDecks.some(d => d.name.toLowerCase() === name.trim().toLowerCase())) { alert("Tên bộ thẻ đã tồn tại!"); return null; } const newDeck = { id: generateDeckId(), name: name.trim(), createdAt: Date.now() }; if (!Array.isArray(userDecks)) userDecks =[]; userDecks.push(newDeck); saveUserDecks(); populateDeckSelects(); renderExistingDecksList(); return newDeck; }
+        function updateDeckName(id, newName) { const currentUserId = window.authFunctions.getCurrentUserId(); if (!currentUserId) { alert("Vui lòng đăng nhập."); return false; } if (!newName || !newName.trim()) { alert("Tên bộ thẻ trống!"); return false; } if (Array.isArray(userDecks) && userDecks.some(d => d.id !== id && d.name.toLowerCase() === newName.trim().toLowerCase())) { alert("Tên bộ thẻ đã tồn tại!"); return false; } if (!Array.isArray(userDecks)) userDecks =[]; const idx = userDecks.findIndex(d => d.id === id); if (idx > -1) { userDecks[idx].name = newName.trim(); saveUserDecks(); populateDeckSelects(); renderExistingDecksList(); updateMainHeaderTitle(); return true; } return false; }
+        function populateDeckSelects() { 
+            userDeckSelect.innerHTML = '<option value="all_user_cards">Tất cả thẻ của tôi</option><option value="unassigned_cards">Thẻ chưa có bộ</option>'; 
+            if (Array.isArray(userDecks)) { // Check if userDecks is an array before sorting
+                userDecks.sort((a,b)=>a.name.localeCompare(b.name,'vi')).forEach(d=>{const o=document.createElement('option');o.value=d.id;o.textContent=d.name;userDeckSelect.appendChild(o);});
+            }
+            cardDeckAssignmentSelect.innerHTML='<option value="">-- Chọn bộ thẻ --</option>'; 
+            if (Array.isArray(userDecks)) { // Check if userDecks is an array
+                userDecks.forEach(d=>{const o=document.createElement('option');o.value=d.id;o.textContent=d.name;cardDeckAssignmentSelect.appendChild(o);});
+            }
+        }
+        function renderExistingDecksList() { 
+            existingDecksList.innerHTML = ''; 
+            if (!Array.isArray(userDecks) || !userDecks.length) { // Check if userDecks is an array
+                existingDecksList.innerHTML = '<p>Chưa có bộ thẻ.</p>'; return; 
+            } 
+            userDecks.sort((a,b)=>a.name.localeCompare(b.name,'vi')).forEach(d=>{const i=document.createElement('div');i.className='deck-item flex justify-between items-center p-2 border rounded';i.dataset.deckId=d.id;const n=document.createElement('span');n.className='deck-name-display';n.textContent=d.name;const a=document.createElement('div');a.className='deck-actions';const e=document.createElement('button');e.className='edit-deck-btn text-blue-500 p-1';e.innerHTML='<i class="fas fa-edit"></i>';e.onclick=()=>startEditDeckName(d.id,i);a.appendChild(e);i.appendChild(n);i.appendChild(a);existingDecksList.appendChild(i);});
+        }
         function startEditDeckName(id, el) { const c=existingDecksList.querySelector('.editing-deck-input'); if(c){const p=c.closest('.deck-item'); if(p)cancelEditDeckName(p.dataset.deckId,p);} currentEditingDeckId=id;const nS=el.querySelector('.deck-name-display');const aD=el.querySelector('.deck-actions');const oN=nS.textContent;nS.style.display='none';aD.style.display='none';const inp=document.createElement('input');inp.type='text';inp.value=oN;inp.className='editing-deck-input p-1 border rounded';const sB=document.createElement('button');sB.innerHTML='<i class="fas fa-check"></i>';sB.className='text-green-500 p-1 ml-1';sB.onclick=()=>handleSaveDeckName(id,inp.value,el);const cB=document.createElement('button');cB.innerHTML='<i class="fas fa-times"></i>';cB.className='text-red-500 p-1 ml-1';cB.onclick=()=>cancelEditDeckName(id,el);const eC=document.createElement('div');eC.className='flex items-center edit-deck-controls';eC.appendChild(inp);eC.appendChild(sB);eC.appendChild(cB);el.insertBefore(eC,aD);inp.focus();inp.select();} 
         function handleSaveDeckName(id,name,el){if(!updateDeckName(id,name)){const inp=el.querySelector('.editing-deck-input');if(inp)inp.focus();}currentEditingDeckId=null;}
         function cancelEditDeckName(id,el){const nS=el.querySelector('.deck-name-display');const aD=el.querySelector('.deck-actions');const eC=el.querySelector('.edit-deck-controls');if(eC)el.removeChild(eC);nS.style.display='flex';aD.style.display='flex';currentEditingDeckId=null;}
@@ -812,7 +841,7 @@
             const sourceText = currentDatasetSource === 'web' ? "Thẻ của Web" : (currentUserId ? "Thẻ của Tôi" : "Thẻ của Web"); 
             let deckText = "";
             if (currentDatasetSource === 'user' && currentUserId && userDeckSelect.value && userDeckSelect.value !== 'all_user_cards' && userDeckSelect.value !== 'unassigned_cards') {
-                const selectedDeck = userDecks.find(d => d.id === userDeckSelect.value);
+                const selectedDeck = Array.isArray(userDecks) ? userDecks.find(d => d.id === userDeckSelect.value) : null; // Check if userDecks is array
                 if (selectedDeck) deckText = ` - ${selectedDeck.name}`;
             } else if (currentDatasetSource === 'user' && currentUserId && userDeckSelect.value === 'unassigned_cards') {
                 deckText = " - Thẻ chưa có bộ";
@@ -844,7 +873,7 @@
                 modalDeckAssignmentContainer.style.display = 'block';
                 if (mode === 'edit' && cardData && cardData.deckId) { cardDeckAssignmentSelect.value = cardData.deckId; deckCreationHint.classList.add('hidden'); } 
                 else if (mode === 'add' && userDeckSelect.value && userDeckSelect.value !== 'all_user_cards' && userDeckSelect.value !== 'unassigned_cards') { cardDeckAssignmentSelect.value = userDeckSelect.value; deckCreationHint.classList.add('hidden'); } 
-                else { cardDeckAssignmentSelect.value = ''; if (userDecks.length === 0 && mode === 'add') { deckCreationHint.innerHTML = "Mẹo: Tạo bộ thẻ mới từ menu <i class='fas fa-bars'></i> (góc trên) > Quản lý Bộ thẻ."; deckCreationHint.classList.remove('hidden'); } else { deckCreationHint.classList.add('hidden'); } }
+                else { cardDeckAssignmentSelect.value = ''; if (!Array.isArray(userDecks) || userDecks.length === 0 && mode === 'add') { deckCreationHint.innerHTML = "Mẹo: Tạo bộ thẻ mới từ menu <i class='fas fa-bars'></i> (góc trên) > Quản lý Bộ thẻ."; deckCreationHint.classList.remove('hidden'); } else { deckCreationHint.classList.add('hidden'); } }
             } else {
                 modalDeckAssignmentContainer.style.display = 'none';
                 deckCreationHint.classList.add('hidden');
@@ -872,7 +901,7 @@
         function getCardStatus(id,cat,isU){const sK=getStatusKeyForStorage(id,cat,isU);const dS={status:'new',lastReviewed:null,reviewCount:0};if(!sK||!cardStatuses[sK])return dS;const s=cardStatuses[sK];return{status:s.status||'new',lastReviewed:s.lastReviewed||null,reviewCount:s.reviewCount||0};}
         function setCardStatus(newVal){if(window.currentData.length===0)return;const i=window.currentData[window.currentIndex];const cV=i.category;const id=getCardIdentifier(i,cV);if(!id)return;const sK=getStatusKeyForStorage(id,cV,i.isUserCard);const n=Date.now();let cR=(cardStatuses[sK]&&typeof cardStatuses[sK].reviewCount==='number')?cardStatuses[sK].reviewCount:0;cardStatuses[sK]={status:newVal,lastReviewed:n,reviewCount:newVal!=='new'?cR+1:0};saveCardStatuses();updateStatusButtonsUI(id,cV);startLearningTimer();if(newVal==='learned'&&getCategoryState(currentDatasetSource,categorySelect.value).filterMarked==='all_study')applyAllFilters();}
         function updateStatusButtonsUI(id,cat){const sBs=[{btn:statusBtnNew,status:'new'},{btn:statusBtnLearning,status:'learning'},{btn:statusBtnLearned,status:'learned'}];const i=window.currentData.length>0?window.currentData[window.currentIndex]:null;if(!i||!id){sBs.forEach(o=>{if(o.btn){o.btn.classList.remove('bg-indigo-600','text-white','border-indigo-700');o.btn.classList.add('bg-white','text-slate-700','border-slate-300');o.btn.disabled=true;}}); return;}sBs.forEach(o=>{if(o.btn)o.btn.disabled=false;});const cSO=getCardStatus(id,cat,i.isUserCard);const cSV=cSO.status;sBs.forEach(o=>{if(o.btn){o.btn.classList.toggle('bg-indigo-600',o.status===cSV);o.btn.classList.toggle('text-white',o.status===cSV);o.btn.classList.toggle('border-indigo-700',o.status===cSV);o.btn.classList.toggle('bg-white',o.status!==cSV);o.btn.classList.toggle('text-slate-700',o.status!==cSV);o.btn.classList.toggle('border-slate-300',o.status!==cSV);}});if(statusBtnNew)statusBtnNew.disabled=(currentDatasetSource==='web'&&cSV==='learning'&&!i.isUserCard);}
-        function loadUserCards(){ const currentUserId = window.authFunctions.getCurrentUserId(); if (!currentUserId) { return []; } console.warn("loadUserCards: Cần load từ Firestore"); try{const s=localStorage.getItem(userCardsStorageKey);return s?JSON.parse(s):[];}catch(e){return[];}}
+        function loadUserCards(){ const currentUserId = window.authFunctions.getCurrentUserId(); if (!currentUserId) { return []; } console.warn("loadUserCards: Cần load từ Firestore"); try{const s=localStorage.getItem(userCardsStorageKey); const parsedCards = s ? JSON.parse(s) : null; return Array.isArray(parsedCards) ? parsedCards : [];}catch(e){return[];}}
         function saveUserCards(arr){ const currentUserId = window.authFunctions.getCurrentUserId(); if (!currentUserId) return; console.warn("saveUserCards: Cần save vào Firestore"); try{localStorage.setItem(userCardsStorageKey,JSON.stringify(arr));}catch(e){}}
 
         function handleSaveCard() {
@@ -1184,3 +1213,45 @@
 
 </body>
 </html>
+```
+
+**Các thay đổi chính:**
+
+1.  **Khởi tạo `userDecks = [];`**: Ở đầu script chính (bên trong `DOMContentLoaded`), tôi đã thêm dòng `let userDecks = [];` để đảm bảo biến này luôn được khởi tạo là một mảng rỗng trước khi bất kỳ hàm nào cố gắng sử dụng nó.
+2.  **Định nghĩa `checkTypingAnswer` trước khi gán sự kiện**:
+    * Hàm `checkTypingAnswer` đã được định nghĩa đầy đủ **trước** khi các dòng `addEventListener` cho `submitTypingAnswerBtn` và `typingInput` được gọi trong `setupEventListeners`. Điều này đảm bảo hàm đã tồn tại khi gán sự kiện.
+3.  **Gán các hàm vào `window`**: Các hàm `updateSidebarFilterVisibility`, `updateMainHeaderTitle`, `loadVocabularyData`, và `updateFlashcard` được gán vào `window` **sau khi chúng đã được định nghĩa đầy đủ** bên trong `DOMContentLoaded` của script chính. Điều này đảm bảo script xác thực có thể gọi chúng một cách chính xác.
+4.  **Cải thiện `loadUserDecks()`**:
+    ```javascript
+    function loadUserDecks() { 
+        const currentUserId = window.authFunctions.getCurrentUserId(); 
+        if (!currentUserId) { 
+            userDecks = []; 
+            return; 
+        } 
+        console.warn("loadUserDecks: Cần load từ Firestore"); 
+        try { 
+            const d = localStorage.getItem(userDecksStorageKey); 
+            const parsedDecks = d ? JSON.parse(d) : null; // Parse first
+            userDecks = Array.isArray(parsedDecks) ? parsedDecks : []; // Ensure it's an array
+        } catch (e) { 
+            userDecks = []; 
+        } 
+    }
+    ```
+    Trong hàm `loadUserDecks`, tôi đã thêm một bước kiểm tra `Array.isArray(parsedDecks)` để đảm bảo rằng `userDecks` chỉ được gán giá trị nếu `parsedDecks` thực sự là một mảng. Nếu không, `userDecks` sẽ được gán lại thành `[]`.
+5.  **Kiểm tra `Array.isArray(userDecks)` trong các hàm liên quan đến Deck**:
+    * Trong `populateDeckSelects`, `renderExistingDecksList`, `createDeck`, `updateDeckName`, và `openAddEditModal`, tôi đã thêm các kiểm tra `Array.isArray(userDecks)` trước khi thực hiện các thao tác như `.sort()`, `.some()`, `.findIndex()`, hoặc truy cập `.length` để tránh lỗi nếu `userDecks` không phải là một mảng.
+
+**Giải thích thêm về lỗi `userDecks`:**
+
+Lỗi "Cannot read properties of undefined (reading 'sort')" hoặc "Cannot read properties of undefined (reading 'length')" xảy ra khi bạn cố gắng thực hiện một thao tác dành cho mảng (như `sort` hoặc `length`) trên một biến không phải là mảng, hoặc là `undefined` hoặc `null`.
+
+Trong trường hợp của chúng ta:
+* `userDecks` được khai báo là `let userDecks = [];` ở đầu script.
+* Hàm `loadUserDecks` đọc từ `localStorage`. Nếu `localStorage` không có `userDecksStorageKey`, hoặc giá trị lưu trữ là chuỗi `"null"`, thì `JSON.parse()` có thể trả về `null`. Khi đó, `userDecks` sẽ bị gán thành `null`.
+* Sau đó, nếu một hàm như `populateDeckSelects` được gọi và cố gắng `userDecks.sort()`, nó sẽ gây lỗi vì `null` không có phương thức `sort`.
+
+Bằng cách đảm bảo `loadUserDecks` luôn gán một mảng (dù là rỗng) cho `userDecks`, và thêm các kiểm tra `Array.isArray(userDecks)` ở những nơi cần thiết, chúng ta có thể phòng tránh các lỗi này.
+
+Hãy thử nghiệm lại với phiên bản này và xem console log có thay đổi gì không n
