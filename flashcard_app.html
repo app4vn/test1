@@ -126,6 +126,34 @@
         .word-display-empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; padding: 1rem; }
         .word-display-empty-state p { font-size: 1.125rem; color: #e0f2fe; margin-bottom: 1rem; }
         #deck-creation-hint i { font-style: normal; }
+        .choice-button {
+            background-color: #fff;
+            border: 1px solid #cbd5e1; /* slate-300 */
+            color: #334155; /* slate-700 */
+            padding: 0.75rem;
+            border-radius: 0.375rem; /* rounded-md */
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+        }
+        .choice-button:hover {
+            background-color: #f1f5f9; /* slate-100 */
+            border-color: #94a3b8; /* slate-400 */
+        }
+        .choice-button.correct {
+            background-color: #dcfce7; /* green-100 */
+            border-color: #4ade80; /* green-400 */
+            color: #15803d; /* green-700 */
+        }
+        .choice-button.incorrect {
+            background-color: #fee2e2; /* red-100 */
+            border-color: #f87171; /* red-400 */
+            color: #b91c1c; /* red-700 */
+        }
+        .choice-button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
     </style>
     <script>
       tailwind.config = {
@@ -1029,32 +1057,31 @@
                 default:
                     keyPart = cardItem.word;
             }
-            if (!keyPart) return null;
+            if (!keyPart) return `unknown-${generateUniqueId('uid')}`; // Fallback ID if keyPart is missing
             const sanitizedKeyPart = keyPart.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
             return `${cardItem.category}-${sanitizedKeyPart}`;
         }
 
         async function getAllUniqueBaseVerbs() { 
-            const allPhrasalVerbs = []; 
+            const allBaseVerbs = new Set(); // Sử dụng Set để tránh trùng lặp ngay từ đầu
             if (sampleData.phrasalVerbs) { 
-                allPhrasalVerbs.push(...sampleData.phrasalVerbs.filter(card => card.baseVerb)); 
+                sampleData.phrasalVerbs.forEach(card => {if (card.baseVerb) allBaseVerbs.add(card.baseVerb.trim())}); 
             } 
             if (sampleData.collocations) {
-                allPhrasalVerbs.push(...sampleData.collocations.filter(card => card.baseVerb));
+                sampleData.collocations.forEach(card => {if (card.baseVerb) allBaseVerbs.add(card.baseVerb.trim())});
             }
 
             const userCards = await loadUserCards(); 
             if (Array.isArray(userCards)) {
                 userCards.forEach(card => { 
                     if ((card.category === 'phrasalVerbs' || card.category === 'collocations') && card.baseVerb) { 
-                        allPhrasalVerbs.push(card); 
+                        allBaseVerbs.add(card.baseVerb.trim()); 
                     } 
                 }); 
             } else {
                 console.warn("getAllUniqueBaseVerbs: userCards is not an array after load.", userCards);
             }
-            const uniqueBaseVerbs = [...new Set(allPhrasalVerbs.map(card => card.baseVerb).filter(bv => bv && bv.trim() !== ''))]; 
-            return uniqueBaseVerbs.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase())); 
+            return [...allBaseVerbs].filter(bv => bv).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase())); 
         }
         async function getAllUniqueTags() { 
             const allTags = new Set(); 
@@ -1703,9 +1730,8 @@
                     const jsonData = await response.json();
                     if (jsonData && jsonData[category] && jsonData[category].length > 0) { 
                         let webCards = jsonData[category].map(card => {
-                            // Chuẩn hóa cấu trúc thẻ web về dạng đa nghĩa/đa ví dụ nếu cần
                             let meaningsArray = [];
-                            if (Array.isArray(card.meanings)) { // Nếu đã là cấu trúc mới
+                            if (Array.isArray(card.meanings)) { 
                                 meaningsArray = card.meanings.map(m => ({
                                     id: m.id || generateUniqueId('wm_'),
                                     text: m.text || '',
@@ -1717,7 +1743,7 @@
                                         exampleNotes: ex.exampleNotes || ''
                                     })) : []
                                 }));
-                            } else if (card.meaning) { // Xử lý cấu trúc cũ (ví dụ: phrasalVerbs.json hiện tại)
+                            } else if (card.meaning) { 
                                 let examplesArray = [];
                                 if (card.example) {
                                     examplesArray.push({
@@ -1740,7 +1766,7 @@
                                 isUserCard: false, 
                                 category: category, 
                                 meanings: meaningsArray, 
-                                generalNotes: card.generalNotes || card.notes || '', // Ưu tiên generalNotes, fallback về notes
+                                generalNotes: card.generalNotes || card.notes || '', 
                                 status: 'new', 
                                 lastReviewed: null,
                                 reviewCount: 0
@@ -1848,10 +1874,14 @@
                     } else { 
                         if(typingInputContainer) typingInputContainer.innerHTML = '<p class="text-slate-500 italic">Không có thẻ để luyện tập.</p>'; 
                     }
-                } else {
+                } else { // meaning_quiz or word_quiz
                     if(typingInputContainer) typingInputContainer.style.display = 'none'; 
                     if(multipleChoiceOptionsContainer) multipleChoiceOptionsContainer.style.display = 'grid';
-                    if (window.currentData.length > 0 && window.currentData[window.currentIndex]) displayMultipleChoiceOptions(); else if(multipleChoiceOptionsContainer) multipleChoiceOptionsContainer.innerHTML = '<p class="text-slate-500 italic">Không có thẻ để luyện tập.</p>';
+                    if (window.currentData.length > 0 && window.currentData[window.currentIndex]) {
+                        displayMultipleChoiceOptions(); // Gọi hàm hiển thị lựa chọn
+                    } else {
+                         if(multipleChoiceOptionsContainer) multipleChoiceOptionsContainer.innerHTML = '<p class="text-slate-500 italic">Không có thẻ để luyện tập.</p>';
+                    }
                 }
                 if (practiceType === 'word_quiz') {  
                     if(pronunciationDisplay) pronunciationDisplay.style.display = 'none';  
@@ -1976,6 +2006,113 @@
         };
 
         function updateCardInfo(){if(currentCardIndexDisplay) currentCardIndexDisplay.textContent=window.currentData.length>0?window.currentIndex+1:0; if(totalCardsDisplay) totalCardsDisplay.textContent=window.currentData.length; if(prevBtn) prevBtn.disabled=window.currentIndex===0||window.currentData.length===0; let nextDisabled=(window.currentIndex>=window.currentData.length-1||window.currentData.length===0); if(practiceType!=="off")nextDisabled=nextDisabled||(!currentAnswerChecked&&window.currentData.length>0)||(window.currentData.length>0&&window.currentIndex>=window.currentData.length-1&&!currentAnswerChecked); if(!learningCardNextButtonTimer && nextBtn)nextBtn.disabled=nextDisabled; if(flipBtn) flipBtn.disabled=window.currentData.length===0||(practiceType!=="off");}
+
+        // *** THÊM HÀM displayMultipleChoiceOptions ***
+        function displayMultipleChoiceOptions() {
+            multipleChoiceOptionsContainer.innerHTML = ''; // Xóa các lựa chọn cũ
+            if (window.currentData.length === 0 || !window.currentData[window.currentIndex]) {
+                multipleChoiceOptionsContainer.innerHTML = '<p class="text-slate-500 italic col-span-full">Không có thẻ để luyện tập.</p>';
+                return;
+            }
+
+            const currentCard = window.currentData[window.currentIndex];
+            let questionText = '';
+            let correctAnswer = '';
+            let options = [];
+
+            if (practiceType === 'meaning_quiz') { // Hỏi nghĩa của từ
+                questionText = currentCard.category === 'phrasalVerbs' ? currentCard.phrasalVerb : (currentCard.category === 'collocations' ? currentCard.collocation : currentCard.word);
+                correctAnswer = currentCard.meanings[0].text; // Lấy nghĩa đầu tiên làm đáp án đúng
+                options.push(correctAnswer);
+                
+                // Lấy các nghĩa sai ngẫu nhiên từ các thẻ khác cùng loại từ
+                let wrongOptionsCount = 0;
+                const otherCards = activeMasterList.filter(card => 
+                    card.category === currentCard.category && 
+                    getCardIdentifier(card) !== getCardIdentifier(currentCard) && 
+                    card.meanings && card.meanings.length > 0
+                );
+                shuffleArray(otherCards); // Xáo trộn để lấy ngẫu nhiên
+                for (const otherCard of otherCards) {
+                    if (wrongOptionsCount < 3 && otherCard.meanings[0].text !== correctAnswer) {
+                        options.push(otherCard.meanings[0].text);
+                        wrongOptionsCount++;
+                    }
+                    if (wrongOptionsCount >= 3) break;
+                }
+            } else if (practiceType === 'word_quiz') { // Hỏi từ của nghĩa
+                questionText = currentCard.meanings[0].text;
+                correctAnswer = currentCard.category === 'phrasalVerbs' ? currentCard.phrasalVerb : (currentCard.category === 'collocations' ? currentCard.collocation : currentCard.word);
+                options.push(correctAnswer);
+
+                // Lấy các từ/cụm từ sai ngẫu nhiên từ các thẻ khác cùng loại từ
+                let wrongOptionsCount = 0;
+                const otherCards = activeMasterList.filter(card => 
+                    card.category === currentCard.category && 
+                    getCardIdentifier(card) !== getCardIdentifier(currentCard)
+                );
+                shuffleArray(otherCards);
+                for (const otherCard of otherCards) {
+                    const wrongOption = otherCard.category === 'phrasalVerbs' ? otherCard.phrasalVerb : (otherCard.category === 'collocations' ? otherCard.collocation : otherCard.word);
+                    if (wrongOptionsCount < 3 && wrongOption !== correctAnswer) {
+                        options.push(wrongOption);
+                        wrongOptionsCount++;
+                    }
+                    if (wrongOptionsCount >= 3) break;
+                }
+            }
+
+            // Đảm bảo có đủ 4 lựa chọn (nếu không đủ thẻ khác)
+            while (options.length < 2 && options.length > 0) options.push("Lựa chọn không đúng " + options.length); // Thêm lựa chọn giả nếu thiếu
+            while (options.length < Math.min(4, activeMasterList.filter(c => c.category === currentCard.category).length) && options.length > 0) {
+                 options.push("Lựa chọn không đúng " + options.length);
+            }
+
+
+            options = shuffleArray(options); // Xáo trộn các lựa chọn
+
+            options.forEach(optionText => {
+                const button = document.createElement('button');
+                button.className = 'choice-button';
+                button.textContent = optionText;
+                button.addEventListener('click', () => checkMultipleChoiceAnswer(optionText, correctAnswer, button));
+                multipleChoiceOptionsContainer.appendChild(button);
+            });
+        }
+
+        function checkMultipleChoiceAnswer(selectedAnswer, correctAnswer, buttonElement) {
+            currentAnswerChecked = true;
+            feedbackMessage.classList.remove('hidden');
+            const allChoiceButtons = multipleChoiceOptionsContainer.querySelectorAll('.choice-button');
+            allChoiceButtons.forEach(btn => btn.disabled = true); // Vô hiệu hóa tất cả các nút
+
+            const isCorrect = selectedAnswer === correctAnswer;
+
+            if (isCorrect) {
+                buttonElement.classList.add('correct');
+                feedbackMessage.textContent = 'Chính xác!';
+                feedbackMessage.className = 'mt-3 p-3 rounded-md w-full text-center font-semibold bg-green-100 text-green-700 border border-green-300';
+            } else {
+                buttonElement.classList.add('incorrect');
+                feedbackMessage.textContent = `Không đúng! Đáp án là: ${correctAnswer}`;
+                feedbackMessage.className = 'mt-3 p-3 rounded-md w-full text-center font-semibold bg-red-100 text-red-700 border border-red-300';
+                // Tìm và làm nổi bật đáp án đúng
+                allChoiceButtons.forEach(btn => {
+                    if (btn.textContent === correctAnswer) {
+                        btn.classList.add('correct');
+                    }
+                });
+            }
+            
+            flashcardElement.classList.remove('practice-mode-front-only');
+            flashcardElement.classList.add('flipped'); // Lật thẻ để xem mặt sau
+            
+            const cardItem = window.currentData[window.currentIndex];
+            setCardStatus(isCorrect ? 'learned' : 'learning'); // Cập nhật trạng thái thẻ
+            updateCardInfo(); // Cập nhật thông tin thẻ (ví dụ: nút Next)
+        }
+        // *** KẾT THÚC THÊM HÀM ***
+
 
         function setupEventListeners() {
             if(hamburgerMenuBtn) hamburgerMenuBtn.addEventListener('click', openSidebar); 
