@@ -190,6 +190,7 @@
                     <option value="adjectives">Tính từ</option>
                     <option value="nouns">Danh từ</option>
                     <option value="phrasalVerbs">Cụm động từ</option>
+                    <option value="collocations">Collocations</option>
                 </select>
             </div>
             <div id="base-verb-filter-container" style="display:none;"><label for="base-verb-filter" class="block text-sm font-medium text-slate-600 mb-1">Lọc theo từ gốc:</label><select id="base-verb-filter" class="w-full p-2 border border-slate-300 rounded-md shadow-sm"></select></div>
@@ -770,12 +771,16 @@
         
         const sampleData = { 
             "phrasalVerbs": [
-                { "phrasalVerb": "Look up", "baseVerb": "look", "pronunciation": "/lʊk ʌp/", "category": "phrasalVerbs", "meanings": [ { "id": generateUniqueId('m'), "text": "Tra cứu (thông tin)", "notes": "Trong từ điển, danh bạ...", "examples": [ { "id": generateUniqueId('ex'), "eng": "I need to look up this word in the dictionary.", "vie": "Tôi cần tra từ này trong từ điển." }, { "id": generateUniqueId('ex'), "eng": "Can you look up the train times for me?", "vie": "Bạn có thể tra giờ tàu cho tôi được không?" } ]}], "tags": ["learning_information", "actions_tasks"], "generalNotes": "Một cụm động từ phổ biến." },
-                { "phrasalVerb": "Give up", "baseVerb": "give", "pronunciation": "/ɡɪv ʌp/", "category": "phrasalVerbs", "meanings": [ { "id": generateUniqueId('m'), "text": "Từ bỏ", "notes": "Ngừng cố gắng làm gì đó.", "examples": [ { "id": generateUniqueId('ex'), "eng": "Don't give up on your dreams.", "vie": "Đừng từ bỏ ước mơ của bạn." }, { "id": generateUniqueId('ex'), "eng": "He gave up smoking last year.", "vie": "Anh ấy đã bỏ hút thuốc vào năm ngoái." } ]}], "tags": ["effort_achievement", "health_wellbeing"], "generalNotes": "" },
+                { "phrasalVerb": "Look up", "baseVerb": "look", "category": "phrasalVerbs", "pronunciation": "/lʊk ʌp/", "meanings": [ { "id": "m_pv_sample_1_1", "text": "Tra cứu (thông tin)", "notes": "Trong từ điển, danh bạ...", "examples": [ { "id": "ex_pv_sample_1_1_1", "eng": "I need to look up this word in the dictionary.", "vie": "Tôi cần tra từ này trong từ điển." }, { "id": "ex_pv_sample_1_1_2", "eng": "Can you look up the train times for me?", "vie": "Bạn có thể tra giờ tàu cho tôi được không?" } ]}], "tags": ["learning_information", "actions_tasks"], "generalNotes": "Một cụm động từ phổ biến." },
+                { "phrasalVerb": "Give up", "baseVerb": "give", "category": "phrasalVerbs", "pronunciation": "/ɡɪv ʌp/", "meanings": [ { "id": "m_pv_sample_2_1", "text": "Từ bỏ", "notes": "Ngừng cố gắng làm gì đó.", "examples": [ { "id": "ex_pv_sample_2_1_1", "eng": "Don't give up on your dreams.", "vie": "Đừng từ bỏ ước mơ của bạn." }, { "id": "ex_pv_sample_2_1_2", "eng": "He gave up smoking last year.", "vie": "Anh ấy đã bỏ hút thuốc vào năm ngoái." } ]}], "tags": ["effort_achievement", "health_wellbeing"], "generalNotes": "" },
             ],
-            "nouns": [ { "word": "Solution", "pronunciation": "/səˈluːʃən/", "category": "nouns", "meanings": [ { "id": generateUniqueId('m'), "text": "Giải pháp cho một vấn đề."}], "generalNotes": "Danh từ đếm được." } ],
-            "verbs": [ { "word": "Set", "pronunciation": "/set/", "category": "verbs", "meanings": [ { "id": generateUniqueId('m'), "text": "Đặt, để một cái gì đó ở một vị trí cụ thể."}], "generalNotes": "Một động từ có nhiều nghĩa." } ],
-            "adjectives": [ { "word": "Happy", "pronunciation": "/ˈhæpi/", "category": "adjectives", "meanings": [ { "id": generateUniqueId('m'), "text": "Cảm thấy hoặc thể hiện sự vui vẻ, hài lòng."}], "generalNotes": "" } ]
+            "nouns": [ { "word": "Solution", "category": "nouns", "pronunciation": "/səˈluːʃən/", "meanings": [ { "id": "m_noun_sample_1_1", "text": "Giải pháp cho một vấn đề."}], "generalNotes": "Danh từ đếm được." } ],
+            "verbs": [ { "word": "Set", "category": "verbs", "pronunciation": "/set/", "meanings": [ { "id": "m_verb_sample_1_1", "text": "Đặt, để một cái gì đó ở một vị trí cụ thể."}], "generalNotes": "Một động từ có nhiều nghĩa." } ],
+            "adjectives": [ { "word": "Happy", "category": "adjectives", "pronunciation": "/ˈhæpi/", "meanings": [ { "id": "m_adj_sample_1_1", "text": "Cảm thấy hoặc thể hiện sự vui vẻ, hài lòng."}], "generalNotes": "" } ],
+            "collocations": [
+                { "collocation": "take a break", "baseVerb": "take", "category": "collocations", "pronunciation": "/teɪk ə breɪk/", "meanings": [ { "id": "m_col_sample_1_1", "text": "Nghỉ ngơi, giải lao", "notes": "Thường dùng trong công việc hoặc học tập", "examples": [ { "id": "ex_col_sample_1_1_1", "eng": "Let's take a break for 10 minutes.", "vie": "Chúng ta hãy nghỉ giải lao 10 phút." }, { "id": "ex_col_sample_1_1_2", "eng": "She's been working all day, she needs to take a break.", "vie": "Cô ấy đã làm việc cả ngày, cô ấy cần nghỉ ngơi." } ]}], "tags": ["daily_routine", "work_business"], "generalNotes": "Một collocation phổ biến với động từ 'take'." },
+                { "collocation": "make an effort", "baseVerb": "make", "category": "collocations", "pronunciation": "/meɪk ən ˈefərt/", "meanings": [ { "id": "m_col_sample_2_1", "text": "Nỗ lực, cố gắng", "examples": [ { "id": "ex_col_sample_2_1_1", "eng": "You need to make an effort to improve your grades.", "vie": "Bạn cần phải nỗ lực để cải thiện điểm số của mình." } ]}], "tags": ["effort_achievement"], "generalNotes": "" }
+            ]
         };
 
         window.wordDisplay = wordDisplay; 
@@ -1013,7 +1018,17 @@
 
         function getWebCardGlobalId(cardItem) {
             if (!cardItem || cardItem.isUserCard) return null;
-            const keyPart = cardItem.category === 'phrasalVerbs' ? cardItem.phrasalVerb : cardItem.word;
+            let keyPart;
+            switch(cardItem.category) {
+                case 'phrasalVerbs':
+                    keyPart = cardItem.phrasalVerb;
+                    break;
+                case 'collocations': 
+                    keyPart = cardItem.collocation; 
+                    break;
+                default:
+                    keyPart = cardItem.word;
+            }
             if (!keyPart) return null;
             const sanitizedKeyPart = keyPart.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
             return `${cardItem.category}-${sanitizedKeyPart}`;
@@ -1024,10 +1039,14 @@
             if (sampleData.phrasalVerbs) { 
                 allPhrasalVerbs.push(...sampleData.phrasalVerbs.filter(card => card.baseVerb)); 
             } 
+            if (sampleData.collocations) {
+                allPhrasalVerbs.push(...sampleData.collocations.filter(card => card.baseVerb));
+            }
+
             const userCards = await loadUserCards(); 
             if (Array.isArray(userCards)) {
                 userCards.forEach(card => { 
-                    if (card.category === 'phrasalVerbs' && card.baseVerb) { 
+                    if ((card.category === 'phrasalVerbs' || card.category === 'collocations') && card.baseVerb) { 
                         allPhrasalVerbs.push(card); 
                     } 
                 }); 
@@ -1039,17 +1058,22 @@
         }
         async function getAllUniqueTags() { 
             const allTags = new Set(); 
-            if (sampleData.phrasalVerbs) { 
-                sampleData.phrasalVerbs.forEach(card => { 
-                    if (card.tags && Array.isArray(card.tags)) { 
-                        card.tags.forEach(tag => allTags.add(tag.trim().toLowerCase())); 
-                    } 
-                }); 
-            } 
+            const categoriesWithTags = ['phrasalVerbs', 'collocations']; 
+
+            categoriesWithTags.forEach(category => {
+                if (sampleData[category]) {
+                    sampleData[category].forEach(card => {
+                        if (card.tags && Array.isArray(card.tags)) {
+                            card.tags.forEach(tag => allTags.add(tag.trim().toLowerCase()));
+                        }
+                    });
+                }
+            });
+            
             const userCards = await loadUserCards(); 
             if (Array.isArray(userCards)) {
                 userCards.forEach(card => { 
-                    if (card.category === 'phrasalVerbs' && card.tags && Array.isArray(card.tags)) { 
+                    if (categoriesWithTags.includes(card.category) && card.tags && Array.isArray(card.tags)) { 
                         card.tags.forEach(tag => allTags.add(tag.trim().toLowerCase())); 
                     } 
                 }); 
@@ -1067,9 +1091,9 @@
         
         function updateSidebarFilterVisibility (){ 
             const cat=categorySelect.value;
-            const isPV=cat==='phrasalVerbs';
-            baseVerbFilterContainer.style.display=isPV?'block':'none';
-            tagFilterContainer.style.display=isPV?'block':'none';
+            const isPVOrCollocation = cat === 'phrasalVerbs' || cat === 'collocations';
+            baseVerbFilterContainer.style.display = isPVOrCollocation ?'block':'none';
+            tagFilterContainer.style.display = isPVOrCollocation ?'block':'none'; 
             
             const isUserSource = cardSourceSelect.value === 'user';
             const currentUserId = window.authFunctions.getCurrentUserId(); 
@@ -1115,10 +1139,11 @@
 
 
             meaningBlocksContainer.innerHTML = '';
-            const isPhrasalVerb = categorySelect.value === 'phrasalVerbs';
-            phrasalVerbSpecificFields.style.display = isPhrasalVerb ? 'block' : 'none';
+            const currentCategory = categorySelect.value; 
+            const isPVOrCollocation = currentCategory === 'phrasalVerbs' || currentCategory === 'collocations';
+            phrasalVerbSpecificFields.style.display = isPVOrCollocation ? 'block' : 'none';
             
-            if (isPhrasalVerb) { 
+            if (isPVOrCollocation) { 
                 baseVerbSuggestions = await getAllUniqueBaseVerbs(); 
                 tagSuggestions = await getAllUniqueTags(); 
             } else { 
@@ -1149,7 +1174,12 @@
             }
             if (mode === 'edit' && cardData) { 
                 cardIdInput.value = cardData.id; 
-                cardWordInput.value = (cardData.category === 'phrasalVerbs' ? cardData.phrasalVerb : cardData.word) || ''; 
+                let wordOrPhrase = '';
+                if (cardData.category === 'phrasalVerbs') wordOrPhrase = cardData.phrasalVerb;
+                else if (cardData.category === 'collocations') wordOrPhrase = cardData.collocation;
+                else wordOrPhrase = cardData.word;
+                cardWordInput.value = wordOrPhrase || ''; 
+
                 cardPronunciationInput.value = cardData.pronunciation || ''; 
                 cardGeneralNotesInput.value = cardData.generalNotes || ''; 
                 if (cardData.meanings && cardData.meanings.length > 0) { 
@@ -1157,7 +1187,7 @@
                 } else {
                     addMeaningBlockToEnd(); 
                 }
-                if (cardData.category === 'phrasalVerbs') { 
+                if (cardData.category === 'phrasalVerbs' || cardData.category === 'collocations') { 
                     cardBaseVerbInput.value = cardData.baseVerb || ''; 
                     cardTagsInput.value = Array.isArray(cardData.tags) ? cardData.tags.filter(t => t && t !== 'all' && !t.startsWith('particle_')).join(', ') : ''; 
                 } 
@@ -1176,7 +1206,31 @@
 
         function closeAddEditModal(){ hideAutocompleteSuggestions(cardBaseVerbInput); hideAutocompleteSuggestions(cardTagsInput); addEditCardModal.classList.add('opacity-0'); addEditCardModal.querySelector('.modal-content').classList.add('scale-95'); setTimeout(()=>addEditCardModal.classList.add('hidden'),250); }
         function clearLearningTimer(){clearTimeout(learningCardNextButtonTimer);learningCardNextButtonTimer=null;clearInterval(learningCardCountdownInterval);learningCardCountdownInterval=null;if(nextBtn&&nextBtn.textContent.includes('('))nextBtn.innerHTML='Tiếp <i class="fas fa-arrow-right ml-1"></i>';}
-        function startLearningTimer(){clearLearningTimer();if(window.currentData.length===0||practiceType!=="off"||!nextBtn){if(nextBtn){nextBtn.disabled=(window.currentIndex>=window.currentData.length-1||window.currentData.length===0);if(!nextBtn.textContent.includes('('))nextBtn.innerHTML='Tiếp <i class="fas fa-arrow-right ml-1"></i>';}updateCardInfo();return;}const i=window.currentData[window.currentIndex];const cV=i.category;const id=getCardIdentifier(i,cV);const sO=getCardStatus(i);if(currentDatasetSource==='web'&&sO&&sO.status==='learning'&&!i.isUserCard){nextBtn.disabled=true;let c=30;nextBtn.innerHTML=`Tiếp (${c}s) <i class="fas fa-arrow-right ml-1"></i>`;learningCardCountdownInterval=setInterval(()=>{c--;if(c>0){if(nextBtn.disabled)nextBtn.innerHTML=`Tiếp (${c}s) <i class="fas fa-arrow-right ml-1"></i>`;}else{clearInterval(learningCardCountdownInterval);learningCardCountdownInterval=null;}},1000);learningCardNextButtonTimer=setTimeout(()=>{clearInterval(learningCardCountdownInterval);learningCardCountdownInterval=null;nextBtn.disabled=false;nextBtn.innerHTML='Tiếp <i class="fas fa-arrow-right ml-1"></i>';updateCardInfo();},30000);}else{nextBtn.disabled=(window.currentIndex>=window.currentData.length-1||window.currentData.length===0);nextBtn.innerHTML='Tiếp <i class="fas fa-arrow-right ml-1"></i>';}updateCardInfo();}
+        
+        async function startLearningTimer(){ 
+            clearLearningTimer();
+            if(window.currentData.length===0||practiceType!=="off"||!nextBtn){
+                if(nextBtn){
+                    nextBtn.disabled=(window.currentIndex>=window.currentData.length-1||window.currentData.length===0);
+                    if(!nextBtn.textContent.includes('('))nextBtn.innerHTML='Tiếp <i class="fas fa-arrow-right ml-1"></i>';
+                }
+                updateCardInfo();
+                return;
+            }
+            const i=window.currentData[window.currentIndex];
+            const sO = await getCardStatus(i); 
+
+            if(currentDatasetSource==='web'&&sO&&sO.status==='learning'&&!i.isUserCard){
+                nextBtn.disabled=true;let c=30;nextBtn.innerHTML=`Tiếp (${c}s) <i class="fas fa-arrow-right ml-1"></i>`;
+                learningCardCountdownInterval=setInterval(()=>{c--;if(c>0){if(nextBtn.disabled)nextBtn.innerHTML=`Tiếp (${c}s) <i class="fas fa-arrow-right ml-1"></i>`;}else{clearInterval(learningCardCountdownInterval);learningCardCountdownInterval=null;}},1000);
+                learningCardNextButtonTimer=setTimeout(()=>{clearInterval(learningCardCountdownInterval);learningCardCountdownInterval=null;nextBtn.disabled=false;nextBtn.innerHTML='Tiếp <i class="fas fa-arrow-right ml-1"></i>';updateCardInfo();},30000);
+            }else{
+                nextBtn.disabled=(window.currentIndex>=window.currentData.length-1||window.currentData.length===0);
+                nextBtn.innerHTML='Tiếp <i class="fas fa-arrow-right ml-1"></i>';
+            }
+            updateCardInfo();
+        }
+
 
         function loadAppState(){ 
             const currentUserId = window.authFunctions.getCurrentUserId(); 
@@ -1213,7 +1267,10 @@
                 sFS.currentIndex=window.currentIndex;
                 sFS.filterMarked=filterCardStatusSelect.value;
                 if(currentDatasetSource==='user')sFS.deckId=userDeckSelect.value;
-                if(cV==='phrasalVerbs'){sFS.baseVerb=baseVerbSelect.value;sFS.tag=tagSelect.value;}
+                if(cV==='phrasalVerbs' || cV === 'collocations'){ 
+                    sFS.baseVerb=baseVerbSelect.value;
+                    sFS.tag=tagSelect.value;
+                }
                 appState.lastSelectedCategory=cV;
                 appState.lastSelectedSource=currentDatasetSource;
                 appState.lastSelectedDeckId=(currentDatasetSource==='user')?userDeckSelect.value:'all_user_cards';
@@ -1224,11 +1281,9 @@
         }
         function getCategoryState(src,cat){const k=`${src}_${cat}`;if(!appState.categoryStates[k]){appState.categoryStates[k]={searchTerm:'',baseVerb:'all',tag:'all',filterMarked:'all_study',currentIndex:0,deckId:'all_user_cards'};}else{if(appState.categoryStates[k].searchTerm===undefined)appState.categoryStates[k].searchTerm='';if(appState.categoryStates[k].deckId===undefined)appState.categoryStates[k].deckId='all_user_cards';}return appState.categoryStates[k];}
         
-        function getCardIdentifier(item,catVal){
+        function getCardIdentifier(item){
             if(!item) return null; 
-            // Đối với thẻ người dùng, ID đã là duy nhất từ Firestore.
-            // Đối với thẻ web, chúng ta cần một ID định danh toàn cục.
-            return item.isUserCard ? item.id : getWebCardGlobalId(item); 
+            return item.id; 
         }
         
         async function getCardStatus(cardItem){ 
@@ -1240,25 +1295,22 @@
                     lastReviewed: cardItem.lastReviewed || null, 
                     reviewCount: cardItem.reviewCount || 0
                 };
-            } else { // Thẻ của Web
+            } else { 
                 const currentUserId = window.authFunctions.getCurrentUserId();
                 if (currentUserId) { 
-                    // Trạng thái của thẻ web (khi người dùng đăng nhập) đã được gộp vào cardItem bởi loadVocabularyData
-                    // Nên chúng ta có thể đọc trực tiếp từ cardItem
                     return {
                         status: cardItem.status || 'new',
                         lastReviewed: cardItem.lastReviewed || null,
                         reviewCount: cardItem.reviewCount || 0
                     };
                 } else { 
-                    // Người dùng chưa đăng nhập, logic localStorage cho thẻ web (nếu muốn giữ)
-                    // Hiện tại, sẽ trả về mặc định nếu không có localStorage, làm cho nút trạng thái không hoạt động cho thẻ web khi chưa đăng nhập
-                    const cardIdForLegacy = (cardItem.category === 'phrasalVerbs' ? cardItem.phrasalVerb : cardItem.word);
-                    const statusKey = cardIdForLegacy; 
+                    const webCardGlobalId = getWebCardGlobalId(cardItem);
                     const defaultStatus = {status:'new',lastReviewed:null,reviewCount:0};
+                    if (!webCardGlobalId) return defaultStatus;
                     try {
                         const legacyStatuses = JSON.parse(localStorage.getItem('flashcardCardStatuses_v4_nested_linked_ui_fixed_v2') || '{}'); 
-                        if (!statusKey || !legacyStatuses[statusKey]) return defaultStatus;
+                        const statusKey = webCardGlobalId; 
+                        if (!legacyStatuses[statusKey]) return defaultStatus;
                         const s = legacyStatuses[statusKey];
                         return {status:s.status||'new',lastReviewed:s.lastReviewed||null,reviewCount:s.reviewCount||0};
                     } catch (e) {
@@ -1310,14 +1362,13 @@
                         return;
                     }
                     const statusRef = doc(db, 'users', currentUserId, 'webCardStatuses', webCardGlobalId);
-                    // Lấy reviewCount hiện tại từ đối tượng thẻ (đã được load và có thể đã được cập nhật từ Firestore)
                     const currentReviewCount = cardItem.reviewCount || 0; 
                     const newStatusDataForWebCard = {
                         status: newStatusValue,
                         lastReviewed: serverTimestamp(),
                         reviewCount: currentReviewCount + (newStatusValue !== 'new' ? 1 : 0),
-                        originalCategory: cardItem.category, // Lưu lại để tham chiếu nếu cần
-                        originalWordOrPhrase: cardItem.category === 'phrasalVerbs' ? cardItem.phrasalVerb : cardItem.word // Lưu lại để tham chiếu
+                        originalCategory: cardItem.category, 
+                        originalWordOrPhrase: cardItem.category === 'phrasalVerbs' ? cardItem.phrasalVerb : (cardItem.category === 'collocations' ? cardItem.collocation : cardItem.word)
                     };
                     try {
                         await setDoc(statusRef, newStatusDataForWebCard, { merge: true }); 
@@ -1332,9 +1383,7 @@
                     }
                 } else {
                     console.log("Người dùng chưa đăng nhập, trạng thái thẻ web không được lưu vào Firestore. Nút trạng thái sẽ không hoạt động cho thẻ web.");
-                    // Không làm gì nếu người dùng chưa đăng nhập và tương tác với thẻ web
-                    // Hoặc bạn có thể giữ lại logic localStorage ở đây nếu muốn
-                    return; // Thoát sớm để không gọi updateStatusButtonsUI nếu không có hành động gì
+                    return; 
                 }
             }
             
@@ -1347,13 +1396,13 @@
             const statusButtons = [{btn:statusBtnNew,status:'new'},{btn:statusBtnLearning,status:'learning'},{btn:statusBtnLearned,status:'learned'}];
             const currentCardItem = window.currentData.length > 0 ? window.currentData[window.currentIndex] : null;
 
-            if(!currentCardItem || (!currentCardItem.isUserCard && !window.authFunctions.getCurrentUserId()) ){ // Vô hiệu hóa nút nếu là thẻ web và chưa đăng nhập
+            if(!currentCardItem || (!currentCardItem.isUserCard && !window.authFunctions.getCurrentUserId()) ){ 
                 statusButtons.forEach(obj=>{if(obj.btn){obj.btn.classList.remove('bg-indigo-600','text-white','border-indigo-700');obj.btn.classList.add('bg-white','text-slate-700','border-slate-300');obj.btn.disabled=true;}}); 
                 return;
             }
             statusButtons.forEach(obj=>{if(obj.btn)obj.btn.disabled=false;});
             
-            const cardStatusObject = await getCardStatus(currentCardItem); // getCardStatus giờ là async
+            const cardStatusObject = await getCardStatus(currentCardItem); 
             const currentStatusValue = cardStatusObject.status;
 
             statusButtons.forEach(obj=>{
@@ -1504,8 +1553,9 @@
                 updatedAt: serverTimestamp() 
             }; 
             
-            if (cardCategory === 'phrasalVerbs') { 
-                cardDataToSave.phrasalVerb = wordValue; 
+            if (cardCategory === 'phrasalVerbs' || cardCategory === 'collocations') { 
+                if (cardCategory === 'phrasalVerbs') cardDataToSave.phrasalVerb = wordValue;
+                if (cardCategory === 'collocations') cardDataToSave.collocation = wordValue; 
                 cardDataToSave.baseVerb = cardBaseVerbInput.value.trim() || null; 
                 cardDataToSave.tags = cardTagsInput.value.trim().split(',').map(t => t.trim().toLowerCase()).filter(t => t && t !== 'all' && !t.startsWith('particle_')); 
             } else {
@@ -1599,19 +1649,18 @@
         function populateBaseVerbFilter(arr){const bV=new Set();arr.forEach(i=>{if(i.baseVerb)bV.add(i.baseVerb);});baseVerbSelect.innerHTML='';const oA=document.createElement('option');oA.value='all';oA.textContent='Tất cả từ gốc';baseVerbSelect.appendChild(oA);const sBV=Array.from(bV).sort((a,b)=>a.localeCompare(b,'en'));sBV.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v.charAt(0).toUpperCase()+v.slice(1);baseVerbSelect.appendChild(o);});}
         function populateTagFilter(arr){const tT=new Set();arr.forEach(i=>{if(i.tags&&Array.isArray(i.tags)){i.tags.forEach(t=>{if(tagDisplayNames[t]&&t!=='all'&&!t.startsWith('particle_'))tT.add(t);});}});tagSelect.innerHTML='';const oA=document.createElement('option');oA.value='all';oA.textContent=tagDisplayNames["all"]||'Tất cả chủ đề';tagSelect.appendChild(oA);const sTK=Array.from(tT).sort((a,b)=>(tagDisplayNames[a]||a).localeCompare(tagDisplayNames[b]||b,'vi'));sTK.forEach(tK=>{const o=document.createElement('option');o.value=tK;o.textContent=tagDisplayNames[tK]||(tK.charAt(0).toUpperCase()+tK.slice(1));tagSelect.appendChild(o);});}
 
-        async function applyAllFilters(fromLoad=false){ // Make async
+        async function applyAllFilters(fromLoad=false){ 
             const currentUserId = window.authFunctions.getCurrentUserId();
-            clearLearningTimer();const cCV=categorySelect.value;const sFCSC=getCategoryState(currentDatasetSource,cCV);let cST=searchInput.value.trim().toLowerCase();if(!fromLoad){if(cCV==='phrasalVerbs'){sFCSC.baseVerb=baseVerbSelect.value;sFCSC.tag=tagSelect.value;}if(currentDatasetSource==='user' && currentUserId)sFCSC.deckId=userDeckSelect.value;sFCSC.filterMarked=filterCardStatusSelect.value;sFCSC.currentIndex=0;}let lTP=[...activeMasterList];if(currentDatasetSource==='user' && currentUserId){const sDI=sFCSC.deckId||userDeckSelect.value;if(sDI&&sDI!=='all_user_cards'){if(sDI==='unassigned_cards')lTP=lTP.filter(i=>!i.deckId);else lTP=lTP.filter(i=>i.deckId===sDI);}}if(currentDatasetSource==='user' && currentUserId)lTP=lTP.filter(i=>i.category===cCV);if(cCV==='phrasalVerbs'){if(sFCSC.baseVerb&&sFCSC.baseVerb!=='all')lTP=lTP.filter(i=>i.baseVerb===sFCSC.baseVerb);if(sFCSC.tag&&sFCSC.tag!=='all')lTP=lTP.filter(i=>i.tags&&i.tags.includes(sFCSC.tag));}if(cST){lTP=lTP.filter(i=>{const wOP=(i.category==='phrasalVerbs'?i.phrasalVerb:i.word)||'';if(wOP.toLowerCase().includes(cST))return true;if(i.meanings&&i.meanings.some(m=>m.text.toLowerCase().includes(cST)))return true;if(i.meanings){for(const meaning of i.meanings){if(meaning.examples && meaning.examples.some(ex => ex.eng.toLowerCase().includes(cST) || (ex.vie && ex.vie.toLowerCase().includes(cST)) )) return true;}}return false;});}const sFV=sFCSC.filterMarked;if(sFV!=='all_visible'){
-                // We need to await getCardStatus for each item if it's async now
+            clearLearningTimer();const cCV=categorySelect.value;const sFCSC=getCategoryState(currentDatasetSource,cCV);let cST=searchInput.value.trim().toLowerCase();if(!fromLoad){if(cCV==='phrasalVerbs' || cCV === 'collocations'){sFCSC.baseVerb=baseVerbSelect.value;sFCSC.tag=tagSelect.value;}if(currentDatasetSource==='user' && currentUserId)sFCSC.deckId=userDeckSelect.value;sFCSC.filterMarked=filterCardStatusSelect.value;sFCSC.currentIndex=0;}let lTP=[...activeMasterList];if(currentDatasetSource==='user' && currentUserId){const sDI=sFCSC.deckId||userDeckSelect.value;if(sDI&&sDI!=='all_user_cards'){if(sDI==='unassigned_cards')lTP=lTP.filter(i=>!i.deckId);else lTP=lTP.filter(i=>i.deckId===sDI);}}if(currentDatasetSource==='user' && currentUserId)lTP=lTP.filter(i=>i.category===cCV);if(cCV==='phrasalVerbs' || cCV === 'collocations'){if(sFCSC.baseVerb&&sFCSC.baseVerb!=='all')lTP=lTP.filter(i=>i.baseVerb===sFCSC.baseVerb);if(sFCSC.tag&&sFCSC.tag!=='all')lTP=lTP.filter(i=>i.tags&&i.tags.includes(sFCSC.tag));}if(cST){lTP=lTP.filter(i=>{const wOP=(i.category==='phrasalVerbs'?i.phrasalVerb:(i.category === 'collocations' ? i.collocation : i.word))||'';if(wOP.toLowerCase().includes(cST))return true;if(i.meanings&&i.meanings.some(m=>m.text.toLowerCase().includes(cST)))return true;if(i.meanings){for(const meaning of i.meanings){if(meaning.examples && meaning.examples.some(ex => ex.eng.toLowerCase().includes(cST) || (ex.vie && ex.vie.toLowerCase().includes(cST)) )) return true;}}return false;});}const sFV=sFCSC.filterMarked;if(sFV!=='all_visible'){
                 const filteredByStatus = [];
                 for (const item of lTP) {
-                    const cardStatusObj = await getCardStatus(item); // Await here
+                    const cardStatusObj = await getCardStatus(item); 
                     const sV = cardStatusObj.status;
                     if(sFV==='all_study' && (sV==='new'||sV==='learning')) filteredByStatus.push(item);
                     else if(sFV==='new' && sV==='new') filteredByStatus.push(item);
                     else if(sFV==='learning' && sV==='learning') filteredByStatus.push(item);
                     else if(sFV==='learned' && sV==='learned') filteredByStatus.push(item);
-                    else if (sFV === 'all_visible') filteredByStatus.push(item); // Should not happen due to outer if, but good for clarity
+                    else if (sFV === 'all_visible') filteredByStatus.push(item); 
                 }
                 lTP = filteredByStatus;
             }
@@ -1653,21 +1702,54 @@
                     }
                     const jsonData = await response.json();
                     if (jsonData && jsonData[category] && jsonData[category].length > 0) { 
-                        let webCards = jsonData[category].map(card => ({ 
-                            ...card, 
-                            id: getWebCardGlobalId({category: category, word: card.word, phrasalVerb: card.phrasalVerb}), // Gán global ID cho thẻ web
-                            isUserCard: false, 
-                            category: category, 
-                            meanings: card.meanings || (card.meaning ? [{ id: generateUniqueId('wm'), text: card.meaning, notes: card.notes || '', examples: (card.example ? [{id: generateUniqueId('wex'), eng: card.example.replace(/^Ví dụ:\s*/i,'').trim(), vie: card.exampleVie || '', exampleNotes:''}] : []) }] : []), 
-                            generalNotes: card.generalNotes || (card.notes && !card.meaning ? card.notes : ''),
-                            status: 'new', 
-                            lastReviewed: null,
-                            reviewCount: 0
-                        })); 
+                        let webCards = jsonData[category].map(card => {
+                            // Chuẩn hóa cấu trúc thẻ web về dạng đa nghĩa/đa ví dụ nếu cần
+                            let meaningsArray = [];
+                            if (Array.isArray(card.meanings)) { // Nếu đã là cấu trúc mới
+                                meaningsArray = card.meanings.map(m => ({
+                                    id: m.id || generateUniqueId('wm_'),
+                                    text: m.text || '',
+                                    notes: m.notes || '',
+                                    examples: Array.isArray(m.examples) ? m.examples.map(ex => ({
+                                        id: ex.id || generateUniqueId('wex_'),
+                                        eng: ex.eng || '',
+                                        vie: ex.vie || '',
+                                        exampleNotes: ex.exampleNotes || ''
+                                    })) : []
+                                }));
+                            } else if (card.meaning) { // Xử lý cấu trúc cũ (ví dụ: phrasalVerbs.json hiện tại)
+                                let examplesArray = [];
+                                if (card.example) {
+                                    examplesArray.push({
+                                        id: generateUniqueId('wex_'),
+                                        eng: card.example,
+                                        vie: card.exampleVie || ''
+                                    });
+                                }
+                                meaningsArray.push({
+                                    id: generateUniqueId('wm_'),
+                                    text: card.meaning,
+                                    notes: '', 
+                                    examples: examplesArray
+                                });
+                            }
+
+                            return { 
+                                ...card, 
+                                id: getWebCardGlobalId(card), 
+                                isUserCard: false, 
+                                category: category, 
+                                meanings: meaningsArray, 
+                                generalNotes: card.generalNotes || card.notes || '', // Ưu tiên generalNotes, fallback về notes
+                                status: 'new', 
+                                lastReviewed: null,
+                                reviewCount: 0
+                            };
+                        }); 
 
                         if (currentUserId && webCards.length > 0) {
                             const statusPromises = webCards.map(async (card) => {
-                                const webId = card.id; // Đã có ID từ getWebCardGlobalId
+                                const webId = card.id; 
                                 if (webId) {
                                     const statusRef = doc(db, 'users', currentUserId, 'webCardStatuses', webId);
                                     try {
@@ -1697,7 +1779,7 @@
                     if (sampleData[category] && sampleData[category].length > 0) { 
                         activeMasterList = sampleData[category].map(card => ({
                             ...card, 
-                            id: getWebCardGlobalId({category: category, word: card.word, phrasalVerb: card.phrasalVerb}),
+                            id: getWebCardGlobalId({category: category, word: card.word, phrasalVerb: card.phrasalVerb, collocation: card.collocation}),
                             isUserCard: false, 
                             category: category,
                             status: 'new', 
@@ -1713,14 +1795,14 @@
             }
             window.updateSidebarFilterVisibility(); 
             baseVerbSelect.innerHTML = ''; tagSelect.innerHTML = '';
-            if (category !== 'phrasalVerbs') { 
+            if (category !== 'phrasalVerbs' && category !== 'collocations') { 
                 stateForCurrentSourceCategory.baseVerb = 'all'; 
                 stateForCurrentSourceCategory.tag = 'all'; 
             }
             
             activeMasterList = shuffleArray(activeMasterList);
             const relevantCardsForFilters = (currentDatasetSource === 'web' || !currentUserId) ? activeMasterList : activeMasterList.filter(card => card.category === category);
-            if (category === 'phrasalVerbs' && relevantCardsForFilters.length > 0) { 
+            if ((category === 'phrasalVerbs' || category === 'collocations') && relevantCardsForFilters.length > 0) { 
                 populateBaseVerbFilter(relevantCardsForFilters); 
                 populateTagFilter(relevantCardsForFilters); 
                 baseVerbSelect.value = stateForCurrentSourceCategory.baseVerb || 'all'; 
@@ -1758,8 +1840,14 @@
                 if (practiceType === 'typing_practice') {
                     if(typingInputContainer) typingInputContainer.style.display = 'block'; 
                     if(multipleChoiceOptionsContainer) multipleChoiceOptionsContainer.style.display = 'none';
-                    if (window.currentData.length > 0 && window.currentData[window.currentIndex]) { const cI = window.currentData[window.currentIndex]; currentCorrectAnswerForPractice = (cI.category === 'phrasalVerbs' ? cI.phrasalVerb : cI.word) || ''; } 
-                    else { if(typingInputContainer) typingInputContainer.innerHTML = '<p class="text-slate-500 italic">Không có thẻ để luyện tập.</p>'; }
+                    if (window.currentData.length > 0 && window.currentData[window.currentIndex]) { 
+                        const cI = window.currentData[window.currentIndex]; 
+                        if (cI.category === 'phrasalVerbs') currentCorrectAnswerForPractice = cI.phrasalVerb || '';
+                        else if (cI.category === 'collocations') currentCorrectAnswerForPractice = cI.collocation || '';
+                        else currentCorrectAnswerForPractice = cI.word || '';
+                    } else { 
+                        if(typingInputContainer) typingInputContainer.innerHTML = '<p class="text-slate-500 italic">Không có thẻ để luyện tập.</p>'; 
+                    }
                 } else {
                     if(typingInputContainer) typingInputContainer.style.display = 'none'; 
                     if(multipleChoiceOptionsContainer) multipleChoiceOptionsContainer.style.display = 'grid';
@@ -1828,6 +1916,11 @@
                 const iCV = item.category;
                 const firstMeaningText = (item.meanings && item.meanings.length > 0) ? item.meanings[0].text : '';
                 let textForTTS;
+                let mainTermToDisplay = '';
+
+                if (iCV === 'phrasalVerbs') mainTermToDisplay = item.phrasalVerb || '';
+                else if (iCV === 'collocations') mainTermToDisplay = item.collocation || '';
+                else mainTermToDisplay = item.word || '';
 
                 if (practiceType === 'word_quiz') {
                     textForTTS = firstMeaningText;
@@ -1840,16 +1933,19 @@
                     if(tagsDisplayFront) tagsDisplayFront.style.display = 'none'; 
                     if(speakerBtn) speakerBtn.style.display = 'none'; 
                 } else {
-                    const oT = (iCV === 'phrasalVerbs') ? (item.phrasalVerb || '') : (item.word || '');
                     let bTFM = "";
-                    const pts = oT.split(/(\([^)]+\))/g).filter(p => p);
+                    const pts = mainTermToDisplay.split(/(\([^)]+\))/g).filter(p => p);
                     pts.forEach((p, pI) => { const iD = p.startsWith('(') && p.endsWith(')'); const cS = document.createElement('span'); cS.className = iD ? 'text-xl opacity-80 ml-1' : 'text-3xl sm:text-4xl font-bold'; const segs = p.split(/(\s+)/); segs.forEach(s => { bTFM += s; if (s.trim() !== '') { const wS = document.createElement('span'); wS.textContent = s; cS.appendChild(wS); currentWordSpansMeta.push({ element: wS, start: bTFM.length - s.length, length: s.length }); } else cS.appendChild(document.createTextNode(s)); }); if(wordDisplay) wordDisplay.appendChild(cS); if (pI < pts.length - 1) { const nPID = pts[pI + 1].startsWith('(') && pts[pI + 1].endsWith(')'); if (!p.endsWith(' ') && !pts[pI + 1].startsWith(' ') && !(iD && nPID)) { if(wordDisplay) wordDisplay.appendChild(document.createTextNode(' ')); bTFM += ' '; } } });
                     textForTTS = bTFM;
                 }
                 if(wordDisplay) wordDisplay.dataset.ttsText = textForTTS;
                 if(pronunciationDisplay) pronunciationDisplay.textContent = item.pronunciation || '';
-                if (iCV === 'phrasalVerbs' && item.tags && practiceType !== 'word_quiz') { const dT = item.tags.filter(t => t && t !== 'all' && !t.startsWith('particle_') && tagDisplayNames[t]).map(t => tagDisplayNames[t]); if(tagsDisplayFront) {tagsDisplayFront.textContent = dT.join(' | '); tagsDisplayFront.style.display = dT.length > 0 ? 'block' : 'none';} } 
-                else { if(tagsDisplayFront) {tagsDisplayFront.textContent = ''; tagsDisplayFront.style.display = 'none';} }
+                if ((iCV === 'phrasalVerbs' || iCV === 'collocations') && item.tags && practiceType !== 'word_quiz') { 
+                    const dT = item.tags.filter(t => t && t !== 'all' && !t.startsWith('particle_') && tagDisplayNames[t]).map(t => tagDisplayNames[t]); 
+                    if(tagsDisplayFront) {tagsDisplayFront.textContent = dT.join(' | '); tagsDisplayFront.style.display = dT.length > 0 ? 'block' : 'none';} 
+                } else { 
+                    if(tagsDisplayFront) {tagsDisplayFront.textContent = ''; tagsDisplayFront.style.display = 'none';} 
+                }
 
                 if (item.isUserCard && currentUserId) { 
                     const cardBackElement = flashcardElement.querySelector('.card-back');
@@ -1986,7 +2082,7 @@
                 await handleSaveCard(); 
             });
 
-            if(practiceTypeSelect) practiceTypeSelect.addEventListener('change', (e)=>{clearLearningTimer();practiceType=e.target.value;const cat=categorySelect.value;const st=getCategoryState(currentDatasetSource,cat);searchInput.value='';if(cat==='phrasalVerbs'){st.tag='all';if(tagSelect)tagSelect.value='all';st.baseVerb='all';if(baseVerbSelect)baseVerbSelect.value='all';} const currentUserId = window.authFunctions.getCurrentUserId(); if(currentDatasetSource==='user' && currentUserId){st.deckId='all_user_cards';if(userDeckSelect)userDeckSelect.value='all_user_cards';}st.filterMarked='all_study';if(filterCardStatusSelect)filterCardStatusSelect.value='all_study';st.currentIndex=0;applyAllFilters();closeSidebar();});
+            if(practiceTypeSelect) practiceTypeSelect.addEventListener('change', (e)=>{clearLearningTimer();practiceType=e.target.value;const cat=categorySelect.value;const st=getCategoryState(currentDatasetSource,cat);searchInput.value='';if(cat==='phrasalVerbs' || cat === 'collocations'){st.tag='all';if(tagSelect)tagSelect.value='all';st.baseVerb='all';if(baseVerbSelect)baseVerbSelect.value='all';} const currentUserId = window.authFunctions.getCurrentUserId(); if(currentDatasetSource==='user' && currentUserId){st.deckId='all_user_cards';if(userDeckSelect)userDeckSelect.value='all_user_cards';}st.filterMarked='all_study';if(filterCardStatusSelect)filterCardStatusSelect.value='all_study';st.currentIndex=0;applyAllFilters();closeSidebar();});
             if(categorySelect) categorySelect.addEventListener('change', async (e)=>{ 
                 clearLearningTimer();
                 const selCat=e.target.value;
