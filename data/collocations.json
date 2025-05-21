@@ -288,6 +288,268 @@
       ],
       "tags": ["care", "relationships_social", "health_wellbeing", "communication"],
       "generalNotes": "Khi có 'of', nó có nghĩa là chăm sóc. Khi đứng một mình, nó thường là lời chúc."
+    },
+    {
+      "collocation": "take a seat",
+      "baseVerb": "take",
+      "category": "collocations",
+      "pronunciation": "/teɪk ə siːt/",
+      "meanings": [
+        {
+          "id": "m_col_011_1",
+          "text": "Mời ngồi, ngồi xuống",
+          "notes": "Một cách lịch sự để mời ai đó ngồi.",
+          "examples": [
+            {
+              "id": "ex_col_011_1_1",
+              "eng": "Please take a seat, the doctor will see you shortly.",
+              "vie": "Xin mời ngồi, bác sĩ sẽ gặp bạn ngay."
+            }
+          ]
+        }
+      ],
+      "tags": ["communication", "daily_routine"],
+      "generalNotes": ""
+    },
+    {
+      "collocation": "take time",
+      "baseVerb": "take",
+      "category": "collocations",
+      "pronunciation": "/teɪk taɪm/",
+      "meanings": [
+        {
+          "id": "m_col_012_1",
+          "text": "Cần thời gian, tốn thời gian",
+          "notes": "Để làm một việc gì đó.",
+          "examples": [
+            {
+              "id": "ex_col_012_1_1",
+              "eng": "Learning a new language takes time and patience.",
+              "vie": "Học một ngôn ngữ mới cần thời gian và sự kiên nhẫn."
+            },
+            {
+              "id": "ex_col_012_1_2",
+              "eng": "It will take time to recover from the surgery.",
+              "vie": "Sẽ mất thời gian để hồi phục sau ca phẫu thuật."
+            }
+          ]
+        },
+        {
+          "id": "m_col_012_2",
+          "text": "Dành thời gian (để làm gì)",
+          "notes": "Chủ động sử dụng thời gian cho một mục đích cụ thể.",
+          "examples": [
+            {
+              "id": "ex_col_012_2_1",
+              "eng": "You should take time to relax and unwind.",
+              "vie": "Bạn nên dành thời gian để thư giãn và nghỉ ngơi."
+            }
+          ]
+        }
+      ],
+      "tags": ["time_planning", "effort_achievement"],
+      "generalNotes": ""
+    },
+    {
+      "collocation": "take a shower / take a bath",
+      "baseVerb": "take",
+      "category": "collocations",
+      "pronunciation": "/teɪk ə ˈʃaʊər / teɪk ə bɑːθ/",
+      "meanings": [
+        {
+          "id": "m_col_013_1",
+          "text": "Tắm (vòi sen / bồn)",
+          "notes": "",
+          "examples": [
+            {
+              "id": "ex_col_013_1_1",
+              "eng": "I usually take a shower in the morning.",
+              "vie": "Tôi thường tắm vòi sen vào buổi sáng."
+            },
+            {
+              "id": "ex_col_013_1_2",
+              "eng": "She likes to take a long bath to relax.",
+              "vie": "Cô ấy thích ngâm mình trong bồn tắm lâu để thư giãn."
+            }
+          ]
+        }
+      ],
+      "tags": ["daily_routine", "health_wellbeing"],
+      "generalNotes": "'Take a shower' là tắm vòi sen, 'take a bath' là tắm bồn."
+    },
+    {
+      "collocation": "take a look (at)",
+      "baseVerb": "take",
+      "category": "collocations",
+      "pronunciation": "/teɪk ə lʊk (æt)/",
+      "meanings": [
+        {
+          "id": "m_col_014_1",
+          "text": "Nhìn, xem xét (cái gì đó)",
+          "notes": "Thường là một cái nhìn nhanh hoặc để kiểm tra.",
+          "examples": [
+            {
+              "id": "ex_col_014_1_1",
+              "eng": "Can you take a look at this report for me?",
+              "vie": "Bạn có thể xem qua báo cáo này giúp tôi được không?"
+            },
+            {
+              "id": "ex_col_014_1_2",
+              "eng": "Let's take a look at the map.",
+              "vie": "Hãy nhìn vào bản đồ nào."
+            }
+          ]
+        }
+      ],
+      "tags": ["actions_general", "learning_information", "problems_solutions"],
+      "generalNotes": "Thường đi với giới từ 'at'."
+    },
+    {
+      "collocation": "take place",
+      "baseVerb": "take",
+      "category": "collocations",
+      "pronunciation": "/teɪk pleɪs/",
+      "meanings": [
+        {
+          "id": "m_col_015_1",
+          "text": "Diễn ra, xảy ra",
+          "notes": "Được dùng cho các sự kiện, cuộc họp, v.v.",
+          "examples": [
+            {
+              "id": "ex_col_015_1_1",
+              "eng": "The meeting will take place next Monday.",
+              "vie": "Cuộc họp sẽ diễn ra vào thứ Hai tới."
+            },
+            {
+              "id": "ex_col_015_1_2",
+              "eng": "The festival takes place in the town square every year.",
+              "vie": "Lễ hội diễn ra tại quảng trường thị trấn hàng năm."
+            }
+          ]
+        }
+      ],
+      "tags": ["time_planning", "activity"],
+      "generalNotes": ""
+    },
+    {
+      "collocation": "take a test / take an exam",
+      "baseVerb": "take",
+      "category": "collocations",
+      "pronunciation": "/teɪk ə test / teɪk ən ɪɡˈzæm/",
+      "meanings": [
+        {
+          "id": "m_col_016_1",
+          "text": "Làm bài kiểm tra, thi",
+          "notes": "",
+          "examples": [
+            {
+              "id": "ex_col_016_1_1",
+              "eng": "I have to take a math test tomorrow.",
+              "vie": "Tôi phải làm bài kiểm tra toán vào ngày mai."
+            },
+            {
+              "id": "ex_col_016_1_2",
+              "eng": "She's nervous about taking her final exams.",
+              "vie": "Cô ấy lo lắng về việc thi cuối kỳ."
+            }
+          ]
+        }
+      ],
+      "tags": ["learning_information", "effort_achievement"],
+      "generalNotes": ""
+    },
+    {
+      "collocation": "take a call",
+      "baseVerb": "take",
+      "category": "collocations",
+      "pronunciation": "/teɪk ə kɔːl/",
+      "meanings": [
+        {
+          "id": "m_col_017_1",
+          "text": "Nghe điện thoại, nhận cuộc gọi",
+          "notes": "",
+          "examples": [
+            {
+              "id": "ex_col_017_1_1",
+              "eng": "Excuse me, I need to take this call.",
+              "vie": "Xin lỗi, tôi cần phải nghe cuộc gọi này."
+            }
+          ]
+        }
+      ],
+      "tags": ["communication", "work_business"],
+      "generalNotes": ""
+    },
+    {
+      "collocation": "take medicine",
+      "baseVerb": "take",
+      "category": "collocations",
+      "pronunciation": "/teɪk ˈmedɪsɪn/",
+      "meanings": [
+        {
+          "id": "m_col_018_1",
+          "text": "Uống thuốc",
+          "notes": "",
+          "examples": [
+            {
+              "id": "ex_col_018_1_1",
+              "eng": "You should take your medicine after meals.",
+              "vie": "Bạn nên uống thuốc sau bữa ăn."
+            }
+          ]
+        }
+      ],
+      "tags": ["health_wellbeing", "daily_routine"],
+      "generalNotes": ""
+    },
+    {
+      "collocation": "take interest in",
+      "baseVerb": "take",
+      "category": "collocations",
+      "pronunciation": "/teɪk ˈɪntrəst ɪn/",
+      "meanings": [
+        {
+          "id": "m_col_019_1",
+          "text": "Quan tâm đến, có hứng thú với",
+          "notes": "",
+          "examples": [
+            {
+              "id": "ex_col_019_1_1",
+              "eng": "He began to take an interest in photography.",
+              "vie": "Anh ấy bắt đầu có hứng thú với nhiếp ảnh."
+            }
+          ]
+        }
+      ],
+      "tags": ["emotions_feelings", "learning_information", "relationships_social"],
+      "generalNotes": ""
+    },
+    {
+      "collocation": "take charge (of)",
+      "baseVerb": "take",
+      "category": "collocations",
+      "pronunciation": "/teɪk tʃɑːdʒ (əv)/",
+      "meanings": [
+        {
+          "id": "m_col_020_1",
+          "text": "Chịu trách nhiệm, phụ trách, nắm quyền kiểm soát",
+          "notes": "Đảm nhận vai trò lãnh đạo hoặc kiểm soát một tình huống/công việc.",
+          "examples": [
+            {
+              "id": "ex_col_020_1_1",
+              "eng": "She had to take charge of the project when her manager left.",
+              "vie": "Cô ấy phải phụ trách dự án khi quản lý của cô ấy nghỉ việc."
+            },
+            {
+              "id": "ex_col_020_1_2",
+              "eng": "The new CEO will take charge next month.",
+              "vie": "CEO mới sẽ nhậm chức vào tháng tới."
+            }
+          ]
+        }
+      ],
+      "tags": ["work_business", "responsibility", "actions_tasks"],
+      "generalNotes": "Thường đi với giới từ 'of' khi nói về việc phụ trách cái gì đó cụ thể."
     }
   ]
 }
