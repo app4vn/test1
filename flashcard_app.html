@@ -77,7 +77,17 @@
             <div id="base-verb-filter-container" style="display:none;"><label for="base-verb-filter" class="block text-sm font-medium text-slate-600 mb-1">Lọc theo từ gốc:</label><select id="base-verb-filter" class="w-full p-2 border border-slate-300 rounded-md shadow-sm"></select></div>
             <div id="tag-filter-container" style="display:none;"><label for="tags" class="block text-sm font-medium text-slate-600 mb-1">Lọc theo chủ đề:</label><select id="tags" class="w-full p-2 border border-slate-300 rounded-md shadow-sm"></select></div>
             <div><label for="practice-type-select" class="block text-sm font-medium text-slate-600 mb-1">Chế độ Luyện tập:</label><select id="practice-type-select" class="w-full p-2 border border-slate-300 rounded-md shadow-sm"><option value="off">Tắt</option><option value="meaning_quiz">Chọn Nghĩa</option><option value="word_quiz">Chọn Từ</option><option value="typing_practice">Gõ Từ</option></select></div>
-            <div><label for="filter-card-status" class="block text-sm font-medium text-slate-600 mb-1">Hiển thị thẻ:</label><select id="filter-card-status" class="w-full p-2 border border-slate-300 rounded-md shadow-sm"><option value="all_study">Mới & Đang học</option><option value="all_visible">Tất cả</option><option value="new">Chỉ Mới</option><option value="learning">Chỉ Đang học</option><option value="learned">Chỉ Đã thuộc</option></select></div>
+            <div>
+                <label for="filter-card-status" class="block text-sm font-medium text-slate-600 mb-1">Hiển thị thẻ:</label>
+                <select id="filter-card-status" class="w-full p-2 border border-slate-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="all_study">Mới & Đang học</option>
+                    <option value="review_today">Cần ôn tập hôm nay</option>
+                    <option value="all_visible">Tất cả</option>
+                    <option value="new">Chỉ Mới</option>
+                    <option value="learning">Chỉ Đang học</option>
+                    <option value="learned">Chỉ Đã thuộc</option>
+                </select>
+            </div>
         </section>
     </aside>
     <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-[1000] hidden"></div>
