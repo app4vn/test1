@@ -12,12 +12,12 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; 
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBcBpsCGt-eWyAvtNaqxG0QncqzYDJwG70", 
-  authDomain: "fcard-84890.firebaseapp.com", 
-  projectId: "fcard-84890", 
-  storageBucket: "fcard-84890.appspot.com", 
-  messagingSenderId: "195942452341", 
-  appId: "1:195942452341:web:b995a99ae0d1fbb47a7c3c" 
+  apiKey: "AIzaSyBcBpsCGt-eWyAvtNaqxG0QncqzYDJwG70", // Thay thế bằng API key của bạn
+  authDomain: "fcard-84890.firebaseapp.com", // Thay thế bằng authDomain của bạn
+  projectId: "fcard-84890", // Thay thế bằng projectId của bạn
+  storageBucket: "fcard-84890.appspot.com", // Thay thế bằng storageBucket của bạn
+  messagingSenderId: "195942452341", // Thay thế bằng messagingSenderId của bạn
+  appId: "1:195942452341:web:b995a99ae0d1fbb47a7c3c" // Thay thế bằng appId của bạn
 };
 
 // Initialize Firebase
@@ -28,7 +28,7 @@ const db = getFirestore(fbApp);
 let currentUserId = null;
 let isUserAnonymous = true; 
 
-// DOM Elements cho Auth
+// DOM Elements cho Auth (khai báo sớm để có thể dùng trong updateAuthUI)
 const authContainer = document.getElementById('auth-container');
 const userEmailDisplay = document.getElementById('user-email-display');
 const authActionButton = document.getElementById('auth-action-btn');
@@ -63,7 +63,11 @@ let mainHeaderTitle, cardSourceSelect, categorySelect, flashcardElement, wordDis
     jsonImportErrorMessage, jsonImportSuccessMessage, jsonCardDeckAssignmentSelect, 
     jsonDeckCreationHint, copyWebCardBtn, copyToDeckModal, closeCopyToDeckModalBtn, 
     copyToDeckSelect, copyNewDeckNameContainer, copyNewDeckNameInput, copyNewDeckError, 
-    copyToDeckErrorMessage, copyToDeckSuccessMessage, cancelCopyToDeckBtn, confirmCopyToDeckBtn;
+    copyToDeckErrorMessage, copyToDeckSuccessMessage, cancelCopyToDeckBtn, confirmCopyToDeckBtn,
+    // DOM Elements cho Bottom Sheet (sẽ dùng sau)
+    bottomSheetOverlay, bottomSheet, bottomSheetTitle, closeBottomSheetBtn, bottomSheetContent,
+    cardOptionsMenuBtn, cardOptionsMenuBtnBack;
+
 
 // KHAI BÁO CÁC BIẾN TRẠNG THÁI ỨNG DỤNG Ở PHẠM VI MODULE
 let baseVerbSuggestions = [];
@@ -572,6 +576,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     copyToDeckSuccessMessage = document.getElementById('copy-to-deck-success-message');
     cancelCopyToDeckBtn = document.getElementById('cancel-copy-to-deck-btn');
     confirmCopyToDeckBtn = document.getElementById('confirm-copy-to-deck-btn');
+
+    // Bottom Sheet DOM Elements
+    bottomSheetOverlay = document.getElementById('bottom-sheet-overlay');
+    bottomSheet = document.getElementById('bottom-sheet');
+    bottomSheetTitle = document.getElementById('bottom-sheet-title');
+    closeBottomSheetBtn = document.getElementById('close-bottom-sheet-btn');
+    bottomSheetContent = document.getElementById('bottom-sheet-content');
+    cardOptionsMenuBtn = document.getElementById('card-options-menu-btn'); // Nút ở mặt trước
+    cardOptionsMenuBtnBack = document.getElementById('card-options-menu-btn-back'); // Nút ở mặt sau
     
     window.wordDisplay = wordDisplay; 
     window.updateSidebarFilterVisibility = updateSidebarFilterVisibility;
@@ -1101,26 +1114,42 @@ document.addEventListener('DOMContentLoaded', async () => {
             return {
                 status: cardItem.status || 'new',
                 lastReviewed: cardItem.lastReviewed || null, 
-                reviewCount: cardItem.reviewCount || 0
+                reviewCount: cardItem.reviewCount || 0,
+                nextReviewDate: cardItem.nextReviewDate || null,
+                interval: cardItem.interval || 0,
+                easeFactor: cardItem.easeFactor || 2.5,
+                repetitions: cardItem.repetitions || 0
             };
         } else { 
             const currentUserId = window.authFunctions.getCurrentUserId();
             if (currentUserId) { 
-                return {
+                return { // Trả về cả các trường SRS cho thẻ web nếu người dùng đã học
                     status: cardItem.status || 'new',
                     lastReviewed: cardItem.lastReviewed || null,
-                    reviewCount: cardItem.reviewCount || 0
+                    reviewCount: cardItem.reviewCount || 0,
+                    nextReviewDate: cardItem.nextReviewDate || null,
+                    interval: cardItem.interval || 0,
+                    easeFactor: cardItem.easeFactor || 2.5,
+                    repetitions: cardItem.repetitions || 0
                 };
             } else { 
                 const webCardGlobalId = getWebCardGlobalId(cardItem);
-                const defaultStatus = {status:'new',lastReviewed:null,reviewCount:0};
+                const defaultStatus = {status:'new',lastReviewed:null,reviewCount:0, nextReviewDate: null, interval: 0, easeFactor: 2.5, repetitions: 0};
                 if (!webCardGlobalId) return defaultStatus;
                 try {
                     const legacyStatuses = JSON.parse(localStorage.getItem('flashcardCardStatuses_v4_nested_linked_ui_fixed_v2') || '{}'); 
                     const statusKey = webCardGlobalId; 
                     if (!legacyStatuses[statusKey]) return defaultStatus;
                     const s = legacyStatuses[statusKey];
-                    return {status:s.status||'new',lastReviewed:s.lastReviewed||null,reviewCount:s.reviewCount||0};
+                    return {
+                        status:s.status||'new',
+                        lastReviewed:s.lastReviewed||null,
+                        reviewCount:s.reviewCount||0,
+                        nextReviewDate: s.nextReviewDate || null,
+                        interval: s.interval || 0,
+                        easeFactor: s.easeFactor || 2.5,
+                        repetitions: s.repetitions || 0
+                    };
                 } catch (e) {
                     console.error("Error parsing legacy card statuses from localStorage", e);
                     return defaultStatus;
@@ -1132,7 +1161,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function updateCardSrsData(cardItem, ratingQuality) {
         if (!cardItem) return;
         const currentUserId = window.authFunctions.getCurrentUserId();
-        if (!currentUserId && !cardItem.isUserCard) { // Chỉ cho phép cập nhật thẻ web nếu user đã đăng nhập
+        if (!currentUserId && !cardItem.isUserCard) { 
             console.log("Người dùng chưa đăng nhập, không cập nhật SRS cho thẻ web.");
             return;
         }
@@ -1542,14 +1571,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             today.setHours(0, 0, 0, 0); 
             const reviewTodayCards = [];
             for (const item of lTP) {
+                // Đảm bảo item.nextReviewDate là một số (timestamp) hoặc null
                 if (item.nextReviewDate && typeof item.nextReviewDate === 'number') {
                     const reviewDate = new Date(item.nextReviewDate);
                     reviewDate.setHours(0,0,0,0); 
                     if (reviewDate <= today) {
                         reviewTodayCards.push(item);
                     }
-                } 
-                // Không cần kiểm tra item.nextReviewDate.toDate() nữa vì đã chuyển đổi khi tải
+                } else if (item.status === 'new' && item.nextReviewDate === null) { 
+                    // Thẻ mới hoàn toàn (chưa có nextReviewDate) cũng có thể được coi là cần review
+                    // Hoặc bạn có thể đặt nextReviewDate là serverTimestamp() khi tạo thẻ mới
+                    // Hiện tại, thẻ mới tạo sẽ có nextReviewDate là thời điểm tạo, nên sẽ vào đây
+                    reviewTodayCards.push(item);
+                }
             }
             lTP = reviewTodayCards;
             console.log(`Filtered for 'review_today': ${lTP.length} cards`);
