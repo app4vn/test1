@@ -12,12 +12,12 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; 
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBcBpsCGt-eWyAvtNaqxG0QncqzYDJwG70", // Thay thế bằng API key của bạn
-  authDomain: "fcard-84890.firebaseapp.com", // Thay thế bằng authDomain của bạn
-  projectId: "fcard-84890", // Thay thế bằng projectId của bạn
-  storageBucket: "fcard-84890.appspot.com", // Thay thế bằng storageBucket của bạn
-  messagingSenderId: "195942452341", // Thay thế bằng messagingSenderId của bạn
-  appId: "1:195942452341:web:b995a99ae0d1fbb47a7c3c" // Thay thế bằng appId của bạn
+  apiKey: "AIzaSyBcBpsCGt-eWyAvtNaqxG0QncqzYDJwG70", 
+  authDomain: "fcard-84890.firebaseapp.com", 
+  projectId: "fcard-84890", 
+  storageBucket: "fcard-84890.appspot.com", 
+  messagingSenderId: "195942452341", 
+  appId: "1:195942452341:web:b995a99ae0d1fbb47a7c3c" 
 };
 
 // Initialize Firebase
@@ -28,7 +28,7 @@ const db = getFirestore(fbApp);
 let currentUserId = null;
 let isUserAnonymous = true; 
 
-// DOM Elements cho Auth (khai báo sớm để có thể dùng trong updateAuthUI)
+// DOM Elements cho Auth
 const authContainer = document.getElementById('auth-container');
 const userEmailDisplay = document.getElementById('user-email-display');
 const authActionButton = document.getElementById('auth-action-btn');
@@ -64,7 +64,6 @@ let mainHeaderTitle, cardSourceSelect, categorySelect, flashcardElement, wordDis
     jsonDeckCreationHint, copyWebCardBtn, copyToDeckModal, closeCopyToDeckModalBtn, 
     copyToDeckSelect, copyNewDeckNameContainer, copyNewDeckNameInput, copyNewDeckError, 
     copyToDeckErrorMessage, copyToDeckSuccessMessage, cancelCopyToDeckBtn, confirmCopyToDeckBtn,
-    // DOM Elements cho Bottom Sheet (sẽ dùng sau)
     bottomSheetOverlay, bottomSheet, bottomSheetTitle, closeBottomSheetBtn, bottomSheetContent,
     cardOptionsMenuBtn, cardOptionsMenuBtnBack;
 
@@ -583,8 +582,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     bottomSheetTitle = document.getElementById('bottom-sheet-title');
     closeBottomSheetBtn = document.getElementById('close-bottom-sheet-btn');
     bottomSheetContent = document.getElementById('bottom-sheet-content');
-    cardOptionsMenuBtn = document.getElementById('card-options-menu-btn'); // Nút ở mặt trước
-    cardOptionsMenuBtnBack = document.getElementById('card-options-menu-btn-back'); // Nút ở mặt sau
+    cardOptionsMenuBtn = document.getElementById('card-options-menu-btn'); 
+    cardOptionsMenuBtnBack = document.getElementById('card-options-menu-btn-back'); 
     
     window.wordDisplay = wordDisplay; 
     window.updateSidebarFilterVisibility = updateSidebarFilterVisibility;
@@ -1123,7 +1122,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else { 
             const currentUserId = window.authFunctions.getCurrentUserId();
             if (currentUserId) { 
-                return { // Trả về cả các trường SRS cho thẻ web nếu người dùng đã học
+                return { 
                     status: cardItem.status || 'new',
                     lastReviewed: cardItem.lastReviewed || null,
                     reviewCount: cardItem.reviewCount || 0,
@@ -1571,7 +1570,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             today.setHours(0, 0, 0, 0); 
             const reviewTodayCards = [];
             for (const item of lTP) {
-                // Đảm bảo item.nextReviewDate là một số (timestamp) hoặc null
                 if (item.nextReviewDate && typeof item.nextReviewDate === 'number') {
                     const reviewDate = new Date(item.nextReviewDate);
                     reviewDate.setHours(0,0,0,0); 
@@ -1579,9 +1577,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                         reviewTodayCards.push(item);
                     }
                 } else if (item.status === 'new' && item.nextReviewDate === null) { 
-                    // Thẻ mới hoàn toàn (chưa có nextReviewDate) cũng có thể được coi là cần review
-                    // Hoặc bạn có thể đặt nextReviewDate là serverTimestamp() khi tạo thẻ mới
-                    // Hiện tại, thẻ mới tạo sẽ có nextReviewDate là thời điểm tạo, nên sẽ vào đây
                     reviewTodayCards.push(item);
                 }
             }
