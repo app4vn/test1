@@ -1129,17 +1129,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // *** CẬP NHẬT: Hàm này sẽ được thay thế bằng updateCardSrsData ***
-    // async function setCardStatus(newStatusValue){ 
-    //     // ... (code cũ) ...
-    // }
-
     async function updateCardSrsData(cardItem, ratingQuality) {
         if (!cardItem) return;
         const currentUserId = window.authFunctions.getCurrentUserId();
-        if (!currentUserId && !cardItem.isUserCard) {
+        if (!currentUserId && !cardItem.isUserCard) { // Chỉ cho phép cập nhật thẻ web nếu user đã đăng nhập
             console.log("Người dùng chưa đăng nhập, không cập nhật SRS cho thẻ web.");
-            // Có thể hiển thị thông báo cho người dùng ở đây nếu muốn
             return;
         }
 
@@ -1147,24 +1141,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         interval = typeof interval === 'number' ? interval : 0;
         easeFactor = typeof easeFactor === 'number' ? easeFactor : 2.5;
         repetitions = typeof repetitions === 'number' ? repetitions : 0;
-        status = status || 'new'; // Trạng thái hiện tại của thẻ
+        status = status || 'new'; 
 
         const srsParams = calculateSrsParameters(cardItem, ratingQuality);
         
-        let newStatus = 'learning'; // Mặc định là learning
-        if (srsParams.newInterval >= 21) { // Ví dụ: nếu interval >= 21 ngày thì coi là đã thuộc
+        let newStatus = 'learning'; 
+        if (srsParams.newInterval >= 21) { 
             newStatus = 'learned';
         }
-        if (ratingQuality < 2) { // Again or Hard
-             newStatus = 'learning'; // Luôn là learning nếu đánh giá là Again/Hard
+        if (ratingQuality < 2) { 
+             newStatus = 'learning'; 
         }
 
 
         const srsDataToUpdate = {
-            status: newStatus, // Cập nhật status dựa trên logic SRS
+            status: newStatus, 
             lastReviewed: serverTimestamp(),
             reviewCount: (cardItem.reviewCount || 0) + 1,
-            nextReviewDate: srsParams.nextReviewDate, // Firestore Timestamp
+            nextReviewDate: srsParams.nextReviewDate, 
             interval: srsParams.newInterval,
             easeFactor: parseFloat(srsParams.newEaseFactor.toFixed(2)),
             repetitions: srsParams.newRepetitions
@@ -1197,11 +1191,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 console.log(`Web card status SRS updated: ${webCardGlobalId}`, srsDataToUpdate);
             }
 
-            // Cập nhật đối tượng cardItem ở client
             cardItem.status = srsDataToUpdate.status;
             cardItem.lastReviewed = Date.now(); 
             cardItem.reviewCount = srsDataToUpdate.reviewCount;
-            cardItem.nextReviewDate = srsDataToUpdate.nextReviewDate.toDate().getTime(); // Chuyển Timestamp sang mili giây cho client
+            cardItem.nextReviewDate = srsDataToUpdate.nextReviewDate.toDate().getTime(); 
             cardItem.interval = srsDataToUpdate.interval;
             cardItem.easeFactor = srsDataToUpdate.easeFactor;
             cardItem.repetitions = srsDataToUpdate.repetitions;
@@ -1210,7 +1203,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error("Error updating SRS data to Firestore:", error);
             alert("Lỗi cập nhật dữ liệu ôn tập. Vui lòng thử lại.");
         }
-        updateStatusButtonsUI(); // Không cần cardId, cardCategory nữa nếu chỉ bật/tắt nút
+        updateStatusButtonsUI(); 
     }
 
     function calculateSrsParameters(card, ratingQuality) {
@@ -1218,14 +1211,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         let easeFactor = card.easeFactor || 2.5;
         let repetitions = card.repetitions || 0;
 
-        if (ratingQuality < 2) { // 0: Again, 1: Hard 
+        if (ratingQuality < 2) { 
             repetitions = 0;
-            interval = 1; // Reset interval về 1 ngày
-            // Có thể giảm easeFactor nếu là "Hard"
+            interval = 1; 
             if (ratingQuality === 1) { // Hard
                 easeFactor = Math.max(1.3, easeFactor - 0.15);
             }
-        } else { // 2: Good, 3: Easy
+        } else { 
             repetitions++;
             if (repetitions === 1) {
                 interval = 1;
@@ -1234,35 +1226,30 @@ document.addEventListener('DOMContentLoaded', async () => {
             } else {
                 interval = Math.ceil(interval * easeFactor);
             }
-            // Điều chỉnh easeFactor dựa trên chất lượng đánh giá (q)
-            // q=0 (Again), q=1 (Hard), q=2 (Good), q=3 (Easy)
-            // SM-2 formula: EF' = EF + [0.1 - (5-q) * (0.08 + (5-q) * 0.02)]
-            // Với 4 nút, chúng ta có thể ánh xạ ratingQuality (0-3) sang q (ví dụ: 0, 2, 4, 5)
             let q_sm2;
-            if (ratingQuality === 0) q_sm2 = 0; // Again
-            else if (ratingQuality === 1) q_sm2 = 2; // Hard -> tương đương mức thấp của Good trong SM2
-            else if (ratingQuality === 2) q_sm2 = 4; // Good
-            else q_sm2 = 5; // Easy
+            if (ratingQuality === 0) q_sm2 = 0; 
+            else if (ratingQuality === 1) q_sm2 = 2; 
+            else if (ratingQuality === 2) q_sm2 = 4; 
+            else q_sm2 = 5; 
 
-            if (q_sm2 >= 3) { // Chỉ cập nhật EF nếu nhớ tốt
+            if (q_sm2 >= 3) { 
                  easeFactor = easeFactor + (0.1 - (5 - q_sm2) * (0.08 + (5 - q_sm2) * 0.02));
                  if (easeFactor < 1.3) easeFactor = 1.3;
             }
         }
         
-        const MAX_INTERVAL_DAYS = 365 * 2; // Giới hạn interval tối đa là 2 năm
+        const MAX_INTERVAL_DAYS = 365 * 2; 
         interval = Math.min(interval, MAX_INTERVAL_DAYS);
-        interval = Math.max(1, interval); // Đảm bảo interval ít nhất là 1 ngày sau lần đánh giá đầu tiên (nếu không phải "Again")
+        interval = Math.max(1, interval); 
 
         const now = new Date();
-        // Tính toán nextReviewDate dựa trên interval (tính bằng ngày)
         const nextReviewDateObj = new Date(now.setDate(now.getDate() + interval));
         
         return {
             newInterval: interval,
             newEaseFactor: parseFloat(easeFactor.toFixed(2)),
             newRepetitions: repetitions,
-            nextReviewDate: Timestamp.fromDate(nextReviewDateObj) // Trả về Firestore Timestamp
+            nextReviewDate: Timestamp.fromDate(nextReviewDateObj) 
         };
     }
 
@@ -1287,7 +1274,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         await updateCardSrsData(cardItem, ratingQuality);
 
-        // Tự động chuyển sang thẻ tiếp theo sau khi đánh giá
         if (window.currentIndex < window.currentData.length - 1) {
             if(nextBtn) nextBtn.click(); 
         } else {
@@ -1443,7 +1429,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             status: 'new', 
             lastReviewed: null, 
             reviewCount: 0,
-            nextReviewDate: serverTimestamp(), // Thẻ mới sẽ sẵn sàng để học ngay
+            nextReviewDate: serverTimestamp(), 
             interval: 0,          
             easeFactor: 2.5,      
             repetitions: 0,       
@@ -1548,28 +1534,38 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function applyAllFilters(fromLoad=false){ 
         const currentUserId = window.authFunctions.getCurrentUserId();
-        clearLearningTimer();const cCV=categorySelect.value;const sFCSC=getCategoryState(currentDatasetSource,cCV);let cST=searchInput.value.trim().toLowerCase();if(!fromLoad){if(cCV==='phrasalVerbs' || cCV === 'collocations'){sFCSC.baseVerb=baseVerbSelect.value;sFCSC.tag=tagSelect.value;}if(currentDatasetSource==='user' && currentUserId)sFCSC.deckId=userDeckSelect.value;sFCSC.filterMarked=filterCardStatusSelect.value;sFCSC.currentIndex=0;}let lTP=[...activeMasterList];if(currentDatasetSource==='user' && currentUserId){const sDI=sFCSC.deckId||userDeckSelect.value;if(sDI&&sDI!=='all_user_cards'){if(sDI==='unassigned_cards')lTP=lTP.filter(i=>!i.deckId);else lTP=lTP.filter(i=>i.deckId===sDI);}}if(currentDatasetSource==='user' && currentUserId)lTP=lTP.filter(i=>i.category===cCV);if(cCV==='phrasalVerbs' || cCV === 'collocations'){if(sFCSC.baseVerb&&sFCSC.baseVerb!=='all')lTP=lTP.filter(i=>i.baseVerb===sFCSC.baseVerb);if(sFCSC.tag&&sFCSC.tag!=='all')lTP=lTP.filter(i=>i.tags&&i.tags.includes(sFCSC.tag));}if(cST){lTP=lTP.filter(i=>{const wOP=(i.category==='phrasalVerbs'?i.phrasalVerb:(i.category === 'collocations' ? i.collocation : i.word))||'';if(wOP.toLowerCase().includes(cST))return true;if(i.meanings&&i.meanings.some(m=>m.text.toLowerCase().includes(cST)))return true;if(i.meanings){for(const meaning of i.meanings){if(meaning.examples && meaning.examples.some(ex => ex.eng.toLowerCase().includes(cST) || (ex.vie && ex.vie.toLowerCase().includes(cST)) )) return true;}}return false;});}const sFV=sFCSC.filterMarked;if(sFV!=='all_visible'){
-            const filteredByStatus = [];
+        clearLearningTimer();const cCV=categorySelect.value;const sFCSC=getCategoryState(currentDatasetSource,cCV);let cST=searchInput.value.trim().toLowerCase();if(!fromLoad){if(cCV==='phrasalVerbs' || cCV === 'collocations'){sFCSC.baseVerb=baseVerbSelect.value;sFCSC.tag=tagSelect.value;}if(currentDatasetSource==='user' && currentUserId)sFCSC.deckId=userDeckSelect.value;sFCSC.filterMarked=filterCardStatusSelect.value;sFCSC.currentIndex=0;}let lTP=[...activeMasterList];if(currentDatasetSource==='user' && currentUserId){const sDI=sFCSC.deckId||userDeckSelect.value;if(sDI&&sDI!=='all_user_cards'){if(sDI==='unassigned_cards')lTP=lTP.filter(i=>!i.deckId);else lTP=lTP.filter(i=>i.deckId===sDI);}}if(currentDatasetSource==='user' && currentUserId)lTP=lTP.filter(i=>i.category===cCV);if(cCV==='phrasalVerbs' || cCV === 'collocations'){if(sFCSC.baseVerb&&sFCSC.baseVerb!=='all')lTP=lTP.filter(i=>i.baseVerb===sFCSC.baseVerb);if(sFCSC.tag&&sFCSC.tag!=='all')lTP=lTP.filter(i=>i.tags&&i.tags.includes(sFCSC.tag));}if(cST){lTP=lTP.filter(i=>{const wOP=(i.category==='phrasalVerbs'?i.phrasalVerb:(i.category === 'collocations' ? i.collocation : i.word))||'';if(wOP.toLowerCase().includes(cST))return true;if(i.meanings&&i.meanings.some(m=>m.text.toLowerCase().includes(cST)))return true;if(i.meanings){for(const meaning of i.meanings){if(meaning.examples && meaning.examples.some(ex => ex.eng.toLowerCase().includes(cST) || (ex.vie && ex.vie.toLowerCase().includes(cST)) )) return true;}}return false;});}
+        
+        const sFV = sFCSC.filterMarked;
+        if (sFV === 'review_today') {
             const today = new Date();
-            today.setHours(0,0,0,0); // Đặt về đầu ngày để so sánh
-
+            today.setHours(0, 0, 0, 0); 
+            const reviewTodayCards = [];
             for (const item of lTP) {
-                if (sFV === 'review_today') {
-                    if (item.nextReviewDate && new Date(item.nextReviewDate) <= today) {
-                        filteredByStatus.push(item);
+                if (item.nextReviewDate && typeof item.nextReviewDate === 'number') {
+                    const reviewDate = new Date(item.nextReviewDate);
+                    reviewDate.setHours(0,0,0,0); 
+                    if (reviewDate <= today) {
+                        reviewTodayCards.push(item);
                     }
-                } else {
-                    const cardStatusObj = await getCardStatus(item); 
-                    const sV = cardStatusObj.status;
-                    if(sFV==='all_study' && (sV==='new'||sV==='learning')) filteredByStatus.push(item);
-                    else if(sFV==='new' && sV==='new') filteredByStatus.push(item);
-                    else if(sFV==='learning' && sV==='learning') filteredByStatus.push(item);
-                    else if(sFV==='learned' && sV==='learned') filteredByStatus.push(item);
-                    // else if (sFV === 'all_visible') filteredByStatus.push(item); // Đã bị loại bỏ ở trên
-                }
+                } 
+                // Không cần kiểm tra item.nextReviewDate.toDate() nữa vì đã chuyển đổi khi tải
+            }
+            lTP = reviewTodayCards;
+            console.log(`Filtered for 'review_today': ${lTP.length} cards`);
+        } else if (sFV !== 'all_visible') { 
+            const filteredByStatus = [];
+            for (const item of lTP) {
+                const sV = item.status || 'new'; 
+                if(sFV==='all_study' && (sV==='new'||sV==='learning')) filteredByStatus.push(item);
+                else if(sFV==='new' && sV==='new') filteredByStatus.push(item);
+                else if(sFV==='learning' && sV==='learning') filteredByStatus.push(item);
+                else if(sFV==='learned' && sV==='learned') filteredByStatus.push(item);
             }
             lTP = filteredByStatus;
+            console.log(`Filtered by status '${sFV}': ${lTP.length} cards`);
         }
+
         window.currentData=lTP;if(fromLoad){let nI=sFCSC.currentIndex||0;if(window.currentData.length===0)nI=0;else{nI=Math.min(nI,window.currentData.length-1);nI=Math.max(0,nI);}window.currentIndex=nI;}else window.currentIndex=0;sFCSC.currentIndex=window.currentIndex;saveAppState();window.updateFlashcard();window.updateMainHeaderTitle();}
 
     async function loadVocabularyData (category) { 
@@ -2149,7 +2145,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     status: 'new',
                     lastReviewed: null, 
                     reviewCount: 0,
-                    nextReviewDate: serverTimestamp(), // Thẻ mới sẽ sẵn sàng để học ngay
+                    nextReviewDate: serverTimestamp(), 
                     interval: 0,          
                     easeFactor: 2.5,      
                     repetitions: 0,  
