@@ -62,7 +62,6 @@ let mainHeaderTitle, cardSourceSelect, categorySelect, flashcardElement, wordDis
     manualInputModeBtn, jsonInputModeBtn, jsonInputArea, cardJsonInput, processJsonBtn, 
     jsonImportErrorMessage, jsonImportSuccessMessage, jsonCardDeckAssignmentSelect, 
     jsonDeckCreationHint, 
-    // Bỏ copyWebCardBtn ở đây vì nó sẽ được tạo động trong bottom sheet
     copyToDeckModal, closeCopyToDeckModalBtn, 
     copyToDeckSelect, copyNewDeckNameContainer, copyNewDeckNameInput, copyNewDeckError, 
     copyToDeckErrorMessage, copyToDeckSuccessMessage, cancelCopyToDeckBtn, confirmCopyToDeckBtn,
@@ -566,7 +565,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     jsonCardDeckAssignmentSelect = document.getElementById('json-card-deck-assignment-select'); 
     jsonDeckCreationHint = document.getElementById('json-deck-creation-hint');
 
-    copyWebCardBtn = document.getElementById('copy-web-card-btn');
+    // copyWebCardBtn đã bị loại bỏ, không cần gán ở đây nữa
     copyToDeckModal = document.getElementById('copy-to-deck-modal');
     closeCopyToDeckModalBtn = document.getElementById('close-copy-to-deck-modal-btn');
     copyToDeckSelect = document.getElementById('copy-to-deck-select');
@@ -1771,14 +1770,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         if(notesDisplay) notesDisplay.innerHTML = '';
         if(flashcardElement) flashcardElement.classList.remove('flipped');
 
-        // Xóa các nút hành động cũ trên thẻ (nếu có) vì chúng sẽ được chuyển vào Bottom Sheet hoặc không còn dùng nữa
         const oldCardActionButtons = flashcardElement.querySelectorAll('.card-action-btn-on-back');
-        oldCardActionButtons.forEach(btn => btn.remove());
+        oldCardActionButtons.forEach(btn => {
+            if (btn.id !== 'card-options-menu-btn' && btn.id !== 'card-options-menu-btn-back') {
+                btn.remove();
+            }
+        });
 
         const oldOriginalTermOnBack = flashcardElement.querySelector('.original-term-on-back');
         if (oldOriginalTermOnBack) oldOriginalTermOnBack.remove();
         
-        // Ẩn nút mở bottom sheet ban đầu
         if (cardOptionsMenuBtn) cardOptionsMenuBtn.style.display = 'none';
         if (cardOptionsMenuBtnBack) cardOptionsMenuBtnBack.style.display = 'none';
 
@@ -1913,10 +1914,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             }
             
-            // Hiển thị nút mở Bottom Sheet nếu có hành động phù hợp
-            const hasActions = (item.isUserCard && currentUserId) || (!item.isUserCard && currentUserId);
-            if (cardOptionsMenuBtn) cardOptionsMenuBtn.style.display = hasActions ? 'block' : 'none';
-            if (cardOptionsMenuBtnBack) cardOptionsMenuBtnBack.style.display = hasActions ? 'block' : 'none';
+            const hasActionsForBottomSheet = (item.isUserCard && currentUserId) || (!item.isUserCard && currentUserId);
+            if (cardOptionsMenuBtn) cardOptionsMenuBtn.style.display = hasActionsForBottomSheet ? 'block' : 'none';
+            if (cardOptionsMenuBtnBack) cardOptionsMenuBtnBack.style.display = hasActionsForBottomSheet ? 'block' : 'none';
 
 
             if (item.meanings && item.meanings.length > 0) { item.meanings.forEach((mObj, idx) => { const meaningBlockDiv = document.createElement('div'); meaningBlockDiv.className = `meaning-block-on-card ${idx > 0 ? "mt-4 pt-3 border-t border-blue-400 border-opacity-50" : (item.meanings.length > 1 ? "bg-black bg-opacity-10 p-3 rounded-lg" : "") }`; const meaningTextP = document.createElement('p'); meaningTextP.className = "meaning-text-on-card"; if (item.meanings.length > 1) { meaningTextP.textContent = `${idx + 1}. ${mObj.text}`; } else { meaningTextP.textContent = mObj.text; } meaningBlockDiv.appendChild(meaningTextP); if (mObj.notes) { const meaningNotesP = document.createElement('p'); meaningNotesP.className = "meaning-notes-on-card"; meaningNotesP.textContent = mObj.notes; meaningBlockDiv.appendChild(meaningNotesP); } if (mObj.examples && mObj.examples.length > 0) { const examplesContainer = document.createElement('div'); examplesContainer.className = "ml-3 mt-3"; const examplesListDiv = document.createElement('div'); examplesListDiv.className = "space-y-1.5"; examplesListDiv.dataset.meaningId = mObj.id; const maxVisibleExamples = 1; const totalExamples = mObj.examples.length; mObj.examples.forEach((ex, exIdx) => { const exD = document.createElement('div'); exD.className="example-item-on-card"; if (exIdx >= maxVisibleExamples) { exD.classList.add('hidden'); } const eP = document.createElement('p'); eP.className="example-eng-on-card"; const textSpan = document.createElement('span'); const enLabel = document.createElement('span'); enLabel.className = 'example-label'; enLabel.textContent = 'EN: '; textSpan.appendChild(enLabel); textSpan.appendChild(document.createTextNode(ex.eng)); eP.appendChild(textSpan); const copyBtn = document.createElement('button'); copyBtn.className = 'copy-example-btn'; copyBtn.title = 'Sao chép ví dụ'; const initialCopySvg = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" /></svg>`; const copiedSvg = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>`; copyBtn.innerHTML = initialCopySvg; copyBtn.onclick = (e) => { e.stopPropagation(); navigator.clipboard.writeText(ex.eng).then(() => { copyBtn.innerHTML = copiedSvg; setTimeout(() => { copyBtn.innerHTML = initialCopySvg; }, 1500); }).catch(err => { console.error('Không thể sao chép: ', err); }); }; eP.appendChild(copyBtn); exD.appendChild(eP); if(ex.vie){ const vP = document.createElement('p');vP.className="example-vie-on-card";const vnLabel = document.createElement('span');vnLabel.className = 'example-label';vnLabel.textContent = 'VN: ';vP.appendChild(vnLabel);vP.appendChild(document.createTextNode(`(${ex.vie})`));exD.appendChild(vP); } if(ex.exampleNotes){ const nP=document.createElement('p');nP.className="example-notes-on-card";nP.textContent=`Ghi chú VD: ${ex.exampleNotes}`;exD.appendChild(nP); } examplesListDiv.appendChild(exD); }); examplesContainer.appendChild(examplesListDiv); if (totalExamples > maxVisibleExamples) { const toggleExamplesBtn = document.createElement('button'); toggleExamplesBtn.className = "toggle-examples-btn"; let hiddenCount = totalExamples - maxVisibleExamples; toggleExamplesBtn.textContent = `Xem thêm ${hiddenCount} ví dụ...`; toggleExamplesBtn.dataset.expanded = "false"; toggleExamplesBtn.onclick = (e) => { e.stopPropagation(); const isExpanded = toggleExamplesBtn.dataset.expanded === "true"; const exampleItems = examplesListDiv.querySelectorAll('.example-item-on-card'); exampleItems.forEach((item, itemIdx) => { if (itemIdx >= maxVisibleExamples) { item.classList.toggle('hidden', isExpanded); } }); if (isExpanded) { toggleExamplesBtn.textContent = `Xem thêm ${hiddenCount} ví dụ...`; toggleExamplesBtn.dataset.expanded = "false"; } else { toggleExamplesBtn.textContent = "Ẩn bớt ví dụ"; toggleExamplesBtn.dataset.expanded = "true"; } }; examplesContainer.appendChild(toggleExamplesBtn); } meaningBlockDiv.appendChild(examplesContainer); } if(meaningDisplayContainer) meaningDisplayContainer.appendChild(meaningBlockDiv); }); } 
@@ -2327,76 +2327,80 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
 
-        // *** THÊM MỚI: Các hàm cho Bottom Sheet ***
         function openBottomSheet() {
             const currentCard = window.currentData[window.currentIndex];
-            if (!currentCard) return;
+            if (!currentCard || !bottomSheetContent || !bottomSheetTitle || !bottomSheetOverlay || !bottomSheet) return;
 
-            bottomSheetContent.innerHTML = ''; // Xóa nội dung cũ
+            bottomSheetContent.innerHTML = ''; 
 
             let cardTerm = currentCard.word || currentCard.phrasalVerb || currentCard.collocation || "Thẻ hiện tại";
             bottomSheetTitle.textContent = `Tùy chọn cho: ${cardTerm.length > 25 ? cardTerm.substring(0,22) + '...' : cardTerm}`;
 
             const loggedIn = !!window.authFunctions.getCurrentUserId();
+            let hasActions = false;
 
             // Nút Sao chép
             if (!currentCard.isUserCard && loggedIn) {
-                const copyBtn = document.createElement('button');
-                copyBtn.innerHTML = `<i class="fas fa-copy w-5 mr-3 text-sky-500"></i> Sao chép vào Thẻ của Tôi`;
-                copyBtn.onclick = () => {
+                const copyBtnEl = document.createElement('button');
+                copyBtnEl.innerHTML = `<i class="fas fa-copy w-5 mr-3 text-sky-500"></i> Sao chép vào Thẻ của Tôi`;
+                copyBtnEl.onclick = () => {
                     openCopyToDeckModal();
                     closeBottomSheet();
                 };
-                bottomSheetContent.appendChild(copyBtn);
+                bottomSheetContent.appendChild(copyBtnEl);
+                hasActions = true;
             }
 
             // Nút Sửa thẻ
             if (currentCard.isUserCard && loggedIn) {
-                const editBtn = document.createElement('button');
-                editBtn.innerHTML = `<i class="fas fa-edit w-5 mr-3 text-blue-500"></i> Sửa thẻ`;
-                editBtn.onclick = async () => {
+                const editBtnEl = document.createElement('button');
+                editBtnEl.innerHTML = `<i class="fas fa-edit w-5 mr-3 text-blue-500"></i> Sửa thẻ`;
+                editBtnEl.onclick = async () => {
                     await openAddEditModal('edit', currentCard);
                     closeBottomSheet();
                 };
-                bottomSheetContent.appendChild(editBtn);
+                bottomSheetContent.appendChild(editBtnEl);
+                hasActions = true;
             }
             
             // Nút Xóa thẻ
             if (currentCard.isUserCard && loggedIn) {
-                const deleteBtn = document.createElement('button');
-                deleteBtn.classList.add('text-red-600', 'dark:text-red-400');
-                deleteBtn.innerHTML = `<i class="fas fa-trash-alt w-5 mr-3"></i> Xóa thẻ`;
-                deleteBtn.onclick = async () => {
-                    await handleDeleteCard(); // handleDeleteCard đã có confirm
+                const deleteBtnEl = document.createElement('button');
+                deleteBtnEl.classList.add('text-red-600', 'dark:text-red-400');
+                deleteBtnEl.innerHTML = `<i class="fas fa-trash-alt w-5 mr-3"></i> Xóa thẻ`;
+                deleteBtnEl.onclick = async () => {
+                    // handleDeleteCard đã có confirm, không cần confirm lại ở đây
+                    await handleDeleteCard(); 
                     closeBottomSheet();
                 };
-                bottomSheetContent.appendChild(deleteBtn);
+                bottomSheetContent.appendChild(deleteBtnEl);
+                hasActions = true;
             }
             
-            // Nếu không có hành động nào, không hiển thị bottom sheet
-            if (bottomSheetContent.children.length === 0) {
+            if (!hasActions) {
                  console.log("Không có hành động nào cho thẻ này trong bottom sheet.");
-                 return;
+                 return; // Không mở bottom sheet nếu không có nút nào
             }
-
 
             bottomSheetOverlay.classList.remove('hidden');
             bottomSheet.classList.remove('translate-y-full');
-            setTimeout(() => { // Thêm timeout nhỏ để transition opacity hoạt động
-                bottomSheetOverlay.classList.add('active');
-                bottomSheet.classList.add('active');
-            }, 10);
+            // Sử dụng requestAnimationFrame để đảm bảo class được thêm sau khi 'hidden' bị xóa
+            requestAnimationFrame(() => {
+                bottomSheetOverlay.classList.add('active'); // Thêm class active để kích hoạt transition opacity
+                bottomSheet.classList.add('active'); // Thêm class active để kích hoạt transition transform
+            });
         }
 
         function closeBottomSheet() {
+            if (!bottomSheet || !bottomSheetOverlay) return;
             bottomSheet.classList.remove('active');
             bottomSheetOverlay.classList.remove('active');
+            // Đợi transition hoàn tất rồi mới thêm class 'hidden'
             setTimeout(() => {
                 bottomSheet.classList.add('translate-y-full');
                 bottomSheetOverlay.classList.add('hidden');
-            }, 300); // Phải khớp với duration của transition
+            }, 300); 
         }
-        // *** KẾT THÚC THÊM MỚI ***
 
 
         function setupEventListeners() {
@@ -2514,10 +2518,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 processJsonBtn.addEventListener('click', processAndSaveJsonCards);
             }
 
-            // Bỏ event listener cho copyWebCardBtn cũ vì nó sẽ được tạo động
-            // if (copyWebCardBtn) {
-            //     copyWebCardBtn.addEventListener('click', openCopyToDeckModal);
-            // }
             if (closeCopyToDeckModalBtn) {
                 closeCopyToDeckModalBtn.addEventListener('click', closeCopyToDeckModal);
             }
@@ -2540,7 +2540,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
             }
 
-            // *** THÊM MỚI: Event Listeners cho Bottom Sheet ***
             if (cardOptionsMenuBtn) {
                 cardOptionsMenuBtn.addEventListener('click', () => {
                     const currentCard = window.currentData[window.currentIndex];
@@ -2559,7 +2558,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (bottomSheetOverlay) {
                 bottomSheetOverlay.addEventListener('click', closeBottomSheet);
             }
-            // *** KẾT THÚC THÊM MỚI ***
 
 
             if(practiceTypeSelect) practiceTypeSelect.addEventListener('change', (e)=>{clearLearningTimer();practiceType=e.target.value;const cat=categorySelect.value;const st=getCategoryState(currentDatasetSource,cat);searchInput.value='';if(cat==='phrasalVerbs' || cat === 'collocations'){st.tag='all';if(tagSelect)tagSelect.value='all';st.baseVerb='all';if(baseVerbSelect)baseVerbSelect.value='all';} const currentUserId = window.authFunctions.getCurrentUserId(); if(currentDatasetSource==='user' && currentUserId){st.deckId='all_user_cards';if(userDeckSelect)userDeckSelect.value='all_user_cards';}st.filterMarked='all_study';if(filterCardStatusSelect)filterCardStatusSelect.value='all_study';st.currentIndex=0;applyAllFilters();closeSidebar();});
