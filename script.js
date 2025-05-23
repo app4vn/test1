@@ -63,10 +63,7 @@ let mainHeaderTitle, cardSourceSelect, categorySelect, flashcardElement, wordDis
     jsonImportErrorMessage, jsonImportSuccessMessage, jsonCardDeckAssignmentSelect, 
     jsonDeckCreationHint, copyWebCardBtn, copyToDeckModal, closeCopyToDeckModalBtn, 
     copyToDeckSelect, copyNewDeckNameContainer, copyNewDeckNameInput, copyNewDeckError, 
-    copyToDeckErrorMessage, copyToDeckSuccessMessage, cancelCopyToDeckBtn, confirmCopyToDeckBtn,
-    bottomSheetOverlay, bottomSheet, bottomSheetTitle, closeBottomSheetBtn, bottomSheetContent,
-    cardOptionsMenuBtn, cardOptionsMenuBtnBack;
-
+    copyToDeckErrorMessage, copyToDeckSuccessMessage, cancelCopyToDeckBtn, confirmCopyToDeckBtn;
 
 // KHAI BÁO CÁC BIẾN TRẠNG THÁI ỨNG DỤNG Ở PHẠM VI MODULE
 let baseVerbSuggestions = [];
@@ -575,15 +572,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     copyToDeckSuccessMessage = document.getElementById('copy-to-deck-success-message');
     cancelCopyToDeckBtn = document.getElementById('cancel-copy-to-deck-btn');
     confirmCopyToDeckBtn = document.getElementById('confirm-copy-to-deck-btn');
-
-    // Bottom Sheet DOM Elements
-    bottomSheetOverlay = document.getElementById('bottom-sheet-overlay');
-    bottomSheet = document.getElementById('bottom-sheet');
-    bottomSheetTitle = document.getElementById('bottom-sheet-title');
-    closeBottomSheetBtn = document.getElementById('close-bottom-sheet-btn');
-    bottomSheetContent = document.getElementById('bottom-sheet-content');
-    cardOptionsMenuBtn = document.getElementById('card-options-menu-btn'); 
-    cardOptionsMenuBtnBack = document.getElementById('card-options-menu-btn-back'); 
     
     window.wordDisplay = wordDisplay; 
     window.updateSidebarFilterVisibility = updateSidebarFilterVisibility;
@@ -1113,42 +1101,26 @@ document.addEventListener('DOMContentLoaded', async () => {
             return {
                 status: cardItem.status || 'new',
                 lastReviewed: cardItem.lastReviewed || null, 
-                reviewCount: cardItem.reviewCount || 0,
-                nextReviewDate: cardItem.nextReviewDate || null,
-                interval: cardItem.interval || 0,
-                easeFactor: cardItem.easeFactor || 2.5,
-                repetitions: cardItem.repetitions || 0
+                reviewCount: cardItem.reviewCount || 0
             };
         } else { 
             const currentUserId = window.authFunctions.getCurrentUserId();
             if (currentUserId) { 
-                return { 
+                return {
                     status: cardItem.status || 'new',
                     lastReviewed: cardItem.lastReviewed || null,
-                    reviewCount: cardItem.reviewCount || 0,
-                    nextReviewDate: cardItem.nextReviewDate || null,
-                    interval: cardItem.interval || 0,
-                    easeFactor: cardItem.easeFactor || 2.5,
-                    repetitions: cardItem.repetitions || 0
+                    reviewCount: cardItem.reviewCount || 0
                 };
             } else { 
                 const webCardGlobalId = getWebCardGlobalId(cardItem);
-                const defaultStatus = {status:'new',lastReviewed:null,reviewCount:0, nextReviewDate: null, interval: 0, easeFactor: 2.5, repetitions: 0};
+                const defaultStatus = {status:'new',lastReviewed:null,reviewCount:0};
                 if (!webCardGlobalId) return defaultStatus;
                 try {
                     const legacyStatuses = JSON.parse(localStorage.getItem('flashcardCardStatuses_v4_nested_linked_ui_fixed_v2') || '{}'); 
                     const statusKey = webCardGlobalId; 
                     if (!legacyStatuses[statusKey]) return defaultStatus;
                     const s = legacyStatuses[statusKey];
-                    return {
-                        status:s.status||'new',
-                        lastReviewed:s.lastReviewed||null,
-                        reviewCount:s.reviewCount||0,
-                        nextReviewDate: s.nextReviewDate || null,
-                        interval: s.interval || 0,
-                        easeFactor: s.easeFactor || 2.5,
-                        repetitions: s.repetitions || 0
-                    };
+                    return {status:s.status||'new',lastReviewed:s.lastReviewed||null,reviewCount:s.reviewCount||0};
                 } catch (e) {
                     console.error("Error parsing legacy card statuses from localStorage", e);
                     return defaultStatus;
@@ -1160,7 +1132,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function updateCardSrsData(cardItem, ratingQuality) {
         if (!cardItem) return;
         const currentUserId = window.authFunctions.getCurrentUserId();
-        if (!currentUserId && !cardItem.isUserCard) { 
+        if (!currentUserId && !cardItem.isUserCard) { // Chỉ cho phép cập nhật thẻ web nếu user đã đăng nhập
             console.log("Người dùng chưa đăng nhập, không cập nhật SRS cho thẻ web.");
             return;
         }
@@ -1576,9 +1548,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (reviewDate <= today) {
                         reviewTodayCards.push(item);
                     }
-                } else if (item.status === 'new' && item.nextReviewDate === null) { 
-                    reviewTodayCards.push(item);
-                }
+                } 
+                // Không cần kiểm tra item.nextReviewDate.toDate() nữa vì đã chuyển đổi khi tải
             }
             lTP = reviewTodayCards;
             console.log(`Filtered for 'review_today': ${lTP.length} cards`);
