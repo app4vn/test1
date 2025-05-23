@@ -30,6 +30,7 @@
             
             <div id="auth-container" class="flex items-center space-x-2 sm:space-x-3">
                 <span id="user-email-display" class="text-xs sm:text-sm hidden sm:inline-block truncate max-w-[100px] sm:max-w-[150px]"></span>
+                
                 <button id="auth-action-btn" 
                         class="text-white font-semibold py-2 px-3 sm:px-4 rounded-md text-sm flex items-center justify-center transition-colors duration-150 ease-in-out">
                     </button>
@@ -117,12 +118,22 @@
                         <div id="tags-display-front" class="text-sm mt-3 italic"></div>
                     </div>
                     <button id="speaker-btn" title="Phát âm Từ" class="absolute bottom-4 left-4 text-2xl p-2 hover:text-green-200 transition-colors rounded-full hover:bg-black hover:bg-opacity-20"><i class="fas fa-volume-up"></i></button>
+                    <button id="card-options-menu-btn" title="Tùy chọn thẻ" 
+                            class="card-action-btn-on-back absolute top-1.5 right-1.5 p-2 text-white hover:text-sky-200 transition-colors rounded-full hover:bg-black hover:bg-opacity-20 text-lg"
+                            style="display: none;"> 
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
                 </div>
                 <div class="card-back absolute w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-xl shadow-xl p-5 flex flex-col overflow-hidden">
                     <button id="copy-web-card-btn" title="Sao chép vào bộ thẻ của tôi" 
                             class="card-action-btn-on-back absolute top-1.5 left-1.5 p-1.5 text-white hover:text-sky-200 transition-colors rounded-full hover:bg-black hover:bg-opacity-20"
                             style="display: none;">
                         <i class="fas fa-copy"></i>
+                    </button>
+                     <button id="card-options-menu-btn-back" title="Tùy chọn thẻ" 
+                            class="card-action-btn-on-back absolute top-1.5 right-1.5 p-2 text-white hover:text-sky-200 transition-colors rounded-full hover:bg-black hover:bg-opacity-20 text-lg"
+                            style="display: none;"> 
+                        <i class="fas fa-ellipsis-v"></i>
                     </button>
                     <div class="card-scrollable-content w-full h-full overflow-y-auto text-left p-3 pb-16 space-y-2"> 
                         <div id="meaning-display-container" class="space-y-4">
@@ -345,6 +356,17 @@ Hoặc một mảng thẻ:
             </div>
         </div>
     </div>
+
+    <div id="bottom-sheet-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-[1006] hidden transition-opacity duration-300 ease-in-out"></div>
+    <div id="bottom-sheet" class="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 shadow-2xl rounded-t-2xl p-4 transform translate-y-full transition-transform duration-300 ease-in-out z-[1007] max-h-[70vh] flex flex-col">
+        <div class="flex justify-between items-center mb-3 pb-3 border-b border-slate-200 dark:border-slate-700">
+            <h3 id="bottom-sheet-title" class="text-lg font-semibold text-slate-700 dark:text-slate-200">Tùy chọn Thẻ</h3>
+            <button id="close-bottom-sheet-btn" class="text-2xl text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">&times;</button>
+        </div>
+        <div id="bottom-sheet-content" class="overflow-y-auto space-y-2">
+            </div>
+    </div>
+
 
     <script type="module" src="script.js"></script>
 </body>
