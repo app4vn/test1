@@ -26,10 +26,8 @@ let mainHeaderTitle, cardSourceSelect, categorySelect, flashcardElement, wordDis
     pronunciationDisplay, meaningDisplayContainer, notesDisplay, prevBtn, flipBtn,
     nextBtn, currentCardIndexDisplay, totalCardsDisplay, speakerBtn, speakerExampleBtn,
     tagFilterContainer, tagSelect, searchInput, baseVerbFilterContainer, baseVerbSelect,
-    // practiceTypeSelect, practiceArea, multipleChoiceOptionsContainer, feedbackMessage, // Đã loại bỏ
     filterCardStatusSelect,
     hamburgerMenuBtn, filterSidebar, closeSidebarBtn, sidebarOverlay, tagsDisplayFront,
-    // typingInputContainer, typingInput, submitTypingAnswerBtn, // Đã loại bỏ
     openAddCardModalBtn,
     addEditCardModal, closeModalBtn, addEditCardForm, modalTitle, cardIdInput,
     cardWordInput, cardPronunciationInput, cardGeneralNotesInput, cardVideoUrlInput,
@@ -48,8 +46,7 @@ let mainHeaderTitle, cardSourceSelect, categorySelect, flashcardElement, wordDis
     bottomSheetOverlay, bottomSheet, bottomSheetTitle, closeBottomSheetBtn, bottomSheetContent,
     cardOptionsMenuBtn, cardOptionsMenuBtnBack,
     authActionButtonMain, userEmailDisplayMain,
-    actionBtnNotes, actionBtnMedia, actionBtnPracticeCard, // Nút "Bài tập"
-    // exitSingleCardPracticeBtn, // Đã loại bỏ
+    actionBtnNotes, actionBtnMedia, actionBtnPracticeCard, 
     bottomSheetTabsContainer, tabBtnYouTube,
     flipIconFront, flipIconBack, cardFrontElement,
     recentlyViewedListElement, noRecentCardsMessageElement;
@@ -63,16 +60,10 @@ window.currentData = [];
 window.currentIndex = 0;
 let currentWordSpansMeta = [];
 let activeMasterList = [];
-// let practiceType = "off"; // Đã loại bỏ
 let currentInputMode = 'manual';
-// let currentAnswerChecked = false; // Đã loại bỏ
-// let currentCorrectAnswerForPractice = ''; // Đã loại bỏ
 let userDecks = [];
 let currentEditingCardId = null;
 let currentEditingDeckId = null;
-// let isSingleCardPracticeMode = false; // Đã loại bỏ
-// let originalCurrentData = []; // Đã loại bỏ
-// let originalCurrentIndex = 0; // Đã loại bỏ
 
 let touchStartX = 0;
 let touchEndX = 0;
@@ -125,7 +116,7 @@ const defaultAppState = {
 };
 let appState = JSON.parse(JSON.stringify(defaultAppState));
 
-const appStateStorageKey = 'flashcardAppState_v7_customExercise'; // Đổi key để tránh xung đột với state cũ
+const appStateStorageKey = 'flashcardAppState_v7_customExercise'; 
 
 
 function generateUniqueId(prefix = 'id') {
@@ -159,7 +150,7 @@ function getCardIdentifier(item){
     return `${category}-${sanitizedKeyPart}`;
 }
 
-// Hàm tạo ID cho Bài giảng (giữ nguyên)
+// Hàm tạo ID cho Bài giảng (ĐÃ SỬA)
 function generateCardLectureId(cardItem) {
     if (!cardItem) return `unknown-lecture-${generateUniqueId('uid')}`;
     let keyPart;
@@ -174,10 +165,11 @@ function generateCardLectureId(cardItem) {
     if (!keyPart) return `${category}-unknown-${generateUniqueId('lecturekey')}`;
 
     const sanitizedKeyPart = String(keyPart).toLowerCase().replace(/\s+/g, '-').replace(/[().,/?!"':]/g, '').replace(/[^a-z0-9-]/g, '');
-    return `lecture-${category}-${sanitizedKeyPart}`;
+    // Bỏ tiền tố "lecture-" để quay lại định dạng ID cũ cho bài giảng
+    return `${category}-${sanitizedKeyPart}`; 
 }
 
-// Hàm tạo ID cho Bài tập tùy chỉnh (MỚI)
+// Hàm tạo ID cho Bài tập tùy chỉnh
 function generateCardExerciseId(cardItem) {
     if (!cardItem) return `unknown-exercise-${generateUniqueId('uid')}`;
     let keyPart;
@@ -192,7 +184,8 @@ function generateCardExerciseId(cardItem) {
     if (!keyPart) return `${category}-unknown-${generateUniqueId('exercisekey')}`;
 
     const sanitizedKeyPart = String(keyPart).toLowerCase().replace(/\s+/g, '-').replace(/[().,/?!"':]/g, '').replace(/[^a-z0-9-]/g, '');
-    return `exercise-${category}-${sanitizedKeyPart}`;
+    // Giữ lại tiền tố "exercise-" cho bài tập để phân biệt với bài giảng nếu cần
+    return `exercise-${category}-${sanitizedKeyPart}`; 
 }
 
 
@@ -679,19 +672,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     searchInput = document.getElementById('search-input');
     baseVerbFilterContainer = document.getElementById('base-verb-filter-container');
     baseVerbSelect = document.getElementById('base-verb-filter');
-    // practiceTypeSelect = document.getElementById('practice-type-select'); // Đã loại bỏ
-    // practiceArea = document.getElementById('practice-area'); // Đã loại bỏ
-    // multipleChoiceOptionsContainer = document.getElementById('multiple-choice-options'); // Đã loại bỏ
-    // feedbackMessage = document.getElementById('feedback-message'); // Đã loại bỏ
     filterCardStatusSelect = document.getElementById('filter-card-status');
     hamburgerMenuBtn = document.getElementById('hamburger-menu-btn');
     filterSidebar = document.getElementById('filter-sidebar');
     closeSidebarBtn = document.getElementById('close-sidebar-btn');
     sidebarOverlay = document.getElementById('sidebar-overlay');
     tagsDisplayFront = document.getElementById('tags-display-front');
-    // typingInputContainer = document.getElementById('typing-input-container'); // Đã loại bỏ
-    // typingInput = document.getElementById('typing-input'); // Đã loại bỏ
-    // submitTypingAnswerBtn = document.getElementById('submit-typing-answer-btn'); // Đã loại bỏ
     openAddCardModalBtn = document.getElementById('open-add-card-modal-btn');
     addEditCardModal = document.getElementById('add-edit-card-modal');
     closeModalBtn = document.getElementById('close-modal-btn');
@@ -755,7 +741,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     actionBtnNotes = document.getElementById('action-btn-notes');
     actionBtnMedia = document.getElementById('action-btn-media');
     actionBtnPracticeCard = document.getElementById('action-btn-practice-card');
-    // exitSingleCardPracticeBtn = document.getElementById('exit-single-card-practice-btn'); // Đã loại bỏ
     bottomSheetTabsContainer = document.getElementById('bottom-sheet-tabs');
     tabBtnYouTube = document.getElementById('tab-btn-youtube');
     flipIconFront = document.getElementById('flip-icon-front');
@@ -1070,9 +1055,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (manageDecksBtn) manageDecksBtn.disabled = !isUserSource || !isLoggedIn;
         if (openAddCardModalBtn) openAddCardModalBtn.disabled = !isUserSource || !isLoggedIn;
 
-        // Ẩn practiceTypeSelect nếu nó vẫn còn trong DOM (mặc dù đã comment trong HTML)
         const practiceTypeSelectEl = document.getElementById('practice-type-select');
-        if (practiceTypeSelectEl) practiceTypeSelectEl.closest('div').style.display = 'none';
+        if (practiceTypeSelectEl && practiceTypeSelectEl.closest('div')) {
+             practiceTypeSelectEl.closest('div').style.display = 'none';
+        }
     }
 
     function updateMainHeaderTitle() {
@@ -1278,15 +1264,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
              console.log(`All cards loaded for user ${userId}:`, cards);
         } else if (selectedDeckId === 'unassigned_cards') {
-             // Logic for unassigned cards: Fetch all cards and then filter client-side if necessary,
-             // or adjust FirestoreService to fetch cards with no deckId (if that's how they are stored).
-             // For now, assuming loadUserCardsFromFirestore with deckId=null handles this or it's filtered later.
             if (Array.isArray(userDecks)) {
-                for (const deck of userDecks) { // This would load all cards from all decks
+                for (const deck of userDecks) { 
                     const deckCards = await FirestoreService.loadUserCardsFromFirestore(userId, deck.id);
                     cards.push(...deckCards);
                 }
-                // Filter for cards that don't have a deckId or have a specific "unassigned" marker if you implement that
             }
         }
         return cards.map(card => {
@@ -1630,7 +1612,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             meanings: meaningsArray,
                             generalNotes: card.generalNotes || card.notes || '',
                             videoUrl: card.videoUrl || null,
-                            isLearned: false // Web cards default to not learned by user
+                            isLearned: false 
                         };
                     });
 
@@ -1722,7 +1704,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (actionBtnMedia) actionBtnMedia.style.display = 'flex';
         if (speakerExampleBtn) speakerExampleBtn.style.display = 'none';
 
-        // Loại bỏ logic liên quan đến practiceType
         if(pronunciationDisplay) pronunciationDisplay.style.display = 'block';
         if(tagsDisplayFront) tagsDisplayFront.style.display = 'block';
         if(speakerBtn) speakerBtn.style.display = 'block';
@@ -2330,7 +2311,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         cardToCopy.isUserCard = true;
         cardToCopy.deckId = targetDeckId;
         cardToCopy.videoUrl = currentCard.videoUrl || null;
-        cardToCopy.isLearned = currentCard.isLearned || false; // Giữ lại trạng thái isLearned
+        cardToCopy.isLearned = currentCard.isLearned || false; 
         cardToCopy.createdAt = serverTimestamp();
         cardToCopy.updatedAt = serverTimestamp();
 
@@ -2362,11 +2343,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    async function openBottomSheet(cardItem, viewType = 'default', subView = null) { // Thêm subView
+    async function openBottomSheet(cardItem, viewType = 'default', subView = null) { 
         if (!cardItem || !bottomSheetContent || !bottomSheetTitle || !bottomSheetOverlay || !bottomSheet) return;
 
         let hasActions = false;
-        bottomSheetContent.innerHTML = ''; // Xóa nội dung cũ
+        bottomSheetContent.innerHTML = ''; 
         const loggedInUserId = getCurrentUserId();
         const isAdmin = loggedInUserId === ADMIN_UID;
         let cardTerm = cardItem.word || cardItem.phrasalVerb || cardItem.collocation || cardItem.idiom || "Thẻ";
@@ -2380,7 +2361,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (viewType === 'default') {
             bottomSheetTitle.textContent = `Tùy chọn cho: ${cardTerm.length > 20 ? cardTerm.substring(0,17) + '...' : cardTerm}`;
             
-            // Nút Đánh dấu đã học/chưa học
             const learnedBtnEl = document.createElement('button');
             learnedBtnEl.className = 'learned-btn';
             const isLearned = cardItem.isLearned || false;
@@ -2391,14 +2371,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (cardItem.isUserCard) {
                     const updatedData = { isLearned: newLearnedStatus, updatedAt: serverTimestamp() };
                     success = await FirestoreService.saveCardToFirestore(loggedInUserId, cardItem.deckId, updatedData, cardItem.id);
-                } else { // Web card
+                } else { 
                     const webCardId = getCardIdentifier(cardItem);
                     success = await FirestoreService.updateWebCardStatusInFirestore(loggedInUserId, webCardId, cardItem, { isLearned: newLearnedStatus });
                 }
 
                 if (success) {
                     cardItem.isLearned = newLearnedStatus;
-                    updateFlashcard(); // Cập nhật UI thẻ chính
+                    updateFlashcard(); 
                     showToast(newLearnedStatus ? "Đã đánh dấu thẻ là Đã học" : "Đã bỏ đánh dấu Đã học", 2000, "success");
                     closeBottomSheet();
                 } else {
@@ -2435,7 +2415,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         } else if (viewType === 'lecture') {
             bottomSheet.classList.add('bottom-sheet-lecture-mode');
-            const cardLectureId = generateCardLectureId(cardItem);
+            const cardLectureId = generateCardLectureId(cardItem); // Sử dụng hàm đã sửa
+            console.log("Attempting to load lecture with ID:", cardLectureId); // Log ID
             const lectureTitlePrefix = "Bài giảng: ";
             bottomSheetTitle.textContent = `${lectureTitlePrefix}${cardTerm.length > 20 ? cardTerm.substring(0,17) + '...' : cardTerm}`;
             bottomSheetContent.innerHTML = '<p class="text-slate-400 dark:text-slate-300 p-4 text-center">Đang tải bài giảng...</p>';
@@ -2526,8 +2507,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             setActiveMediaTab('youtube_custom', cardItem);
             hasActions = true;
-        } else if (viewType === 'custom_exercise') { // MỚI: Xử lý bài tập tùy chỉnh
-            bottomSheet.classList.add('bottom-sheet-exercise-mode'); // Thêm class mới nếu cần style riêng
+        } else if (viewType === 'custom_exercise') { 
+            bottomSheet.classList.add('bottom-sheet-exercise-mode'); 
             const exerciseId = generateCardExerciseId(cardItem);
             const exerciseTitlePrefix = "Bài tập: ";
             bottomSheetTitle.textContent = `${exerciseTitlePrefix}${cardTerm.length > 20 ? cardTerm.substring(0,17) + '...' : cardTerm}`;
@@ -2536,7 +2517,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             FirestoreService.getCustomExercise(exerciseId)
                 .then(exerciseData => {
                     if (isAdmin) {
-                        bottomSheetContent.innerHTML = ''; // Xóa "Đang tải..."
+                        bottomSheetContent.innerHTML = ''; 
 
                         const titleLabel = document.createElement('label');
                         titleLabel.htmlFor = 'exercise-title-input';
@@ -2559,8 +2540,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                         const contentTextarea = document.createElement('textarea');
                         contentTextarea.id = 'exercise-html-input';
-                        contentTextarea.rows = 15; // Tăng số dòng cho dễ nhập
-                        contentTextarea.className = 'w-full p-2 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:bg-slate-700 dark:text-white mb-3 min-h-[300px]'; // Tăng chiều cao tối thiểu
+                        contentTextarea.rows = 15; 
+                        contentTextarea.className = 'w-full p-2 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:bg-slate-700 dark:text-white mb-3 min-h-[300px]'; 
                         contentTextarea.placeholder = 'Dán hoặc nhập mã HTML của bài tập vào đây...\nVí dụ:\n<div class="exercise-container" data-exercise-type="fill-in-the-blank">\n  <p>Điền từ: I ___ (be) happy.</p>\n  <input type="text" data-answer-input />\n  <button data-action="check-answer">Kiểm tra</button>\n  <div data-feedback-area></div>\n  <div data-correct-answer="am" style="display:none;"></div>\n</div>';
                         contentTextarea.value = exerciseData?.exerciseHTML || '';
                         bottomSheetContent.appendChild(contentTextarea);
@@ -2570,8 +2551,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                         saveExerciseBtn.textContent = 'Lưu Bài Tập';
                         saveExerciseBtn.className = 'w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-md shadow-sm';
                         saveExerciseBtn.onclick = async () => {
-                            const newTitle = titleInput.value.trim(); // Tiêu đề có thể trống
-                            const newExerciseHTML = contentTextarea.value; // HTML không cần trim()
+                            const newTitle = titleInput.value.trim(); 
+                            const newExerciseHTML = contentTextarea.value; 
                             
                             saveExerciseBtn.disabled = true;
                             saveExerciseBtn.textContent = 'Đang lưu...';
@@ -2587,12 +2568,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                         };
                         bottomSheetContent.appendChild(saveExerciseBtn);
 
-                    } else { // Người dùng thường
+                    } else { 
                         if (exerciseData && exerciseData.exerciseHTML) {
                             bottomSheetTitle.textContent = exerciseData.title || `${exerciseTitlePrefix}${cardTerm}`;
-                            // Chèn HTML bài tập và sau đó gắn các event listener nếu cần
                             bottomSheetContent.innerHTML = `<div class="custom-exercise-render-area p-2">${exerciseData.exerciseHTML}</div>`;
-                            // initializeExerciseInteractions(bottomSheetContent.querySelector('.custom-exercise-render-area')); // Sẽ định nghĩa hàm này sau
+                            initializeCustomExerciseInteractions(bottomSheetContent.querySelector('.custom-exercise-render-area')); 
                         } else {
                             bottomSheetContent.innerHTML = '<p class="text-slate-500 dark:text-slate-400 p-4 text-center">Hiện chưa có bài tập cho từ này.</p>';
                         }
@@ -2602,7 +2582,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     console.error("Lỗi khi tải bài tập tùy chỉnh:", error);
                     bottomSheetContent.innerHTML = '<p class="text-red-500 dark:text-red-400 p-4 text-center">Lỗi tải bài tập. Vui lòng thử lại.</p>';
                 });
-            hasActions = true; // Đánh dấu là có hành động để bottom sheet hiển thị
+            hasActions = true; 
         }
 
 
@@ -2702,25 +2682,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         return (match && match[2] && match[2].length === 11) ? match[2] : null;
     }
 
-    // --- Xử lý tương tác cho bài tập tùy chỉnh (Event Delegation) ---
     function initializeCustomExerciseInteractions(container) {
-        // Hàm này sẽ được gọi sau khi HTML bài tập được chèn vào bottomSheetContent
-        // Hiện tại để trống, sẽ được mở rộng sau
+        if (!container) return;
         console.log("Initializing custom exercise interactions for container:", container);
-        // Ví dụ:
-        // const checkButton = container.querySelector('[data-action="check-answer"]');
-        // if (checkButton) { /* ... */ }
+        // Hiện tại, logic xử lý chung đã được đặt trong event listener của bottomSheetContent
+        // Bạn có thể thêm logic khởi tạo cụ thể cho từng loại bài tập ở đây nếu cần,
+        // ví dụ, khởi tạo thư viện kéo thả, v.v.
     }
 
     if (bottomSheetContent) {
         bottomSheetContent.addEventListener('click', function(event) {
             const target = event.target;
-            const exerciseContainer = target.closest('.exercise-container'); // Tìm container bài tập cha
+            const exerciseContainer = target.closest('.exercise-container'); 
             if (!exerciseContainer) return;
 
             const action = target.dataset.action;
 
-            if (action === 'check-answer') { // Ví dụ xử lý cho bài điền từ
+            if (action === 'check-answer') { 
                 const input = exerciseContainer.querySelector('[data-answer-input]');
                 const feedbackArea = exerciseContainer.querySelector('[data-feedback-area]');
                 const correctAnswerEl = exerciseContainer.querySelector('[data-correct-answer]');
@@ -2739,8 +2717,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     feedbackArea.className = 'text-red-600 dark:text-red-400 mt-2';
                 }
             }
-            // Thêm các case khác cho các 'data-action' khác nhau ở đây
-            // Ví dụ: data-action="check-mcq", data-action="show-hint"
         });
     }
 
@@ -2955,20 +2931,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             const currentCard = window.currentData[window.currentIndex];
             if (currentCard) openBottomSheet(currentCard, 'media', 'youtube_custom');
         });
-        // THAY ĐỔI: Nút "Bài tập" sẽ mở custom_exercise
         if(actionBtnPracticeCard) actionBtnPracticeCard.addEventListener('click', () => {
             const currentCard = window.currentData[window.currentIndex];
-            if (currentCard) openBottomSheet(currentCard, 'custom_exercise'); // Mở bài tập tùy chỉnh
+            if (currentCard) openBottomSheet(currentCard, 'custom_exercise'); 
         });
-        // if(exitSingleCardPracticeBtn) exitSingleCardPracticeBtn.addEventListener('click', exitSingleCardPractice); // Đã loại bỏ
 
         if(tabBtnYouTube) tabBtnYouTube.addEventListener('click', () => {
             const currentCard = window.currentData[window.currentIndex];
             if(currentCard) setActiveMediaTab('youtube_custom', currentCard);
         });
 
-        // Loại bỏ event listener cho practiceTypeSelect
-        // if(practiceTypeSelect) practiceTypeSelect.addEventListener('change', ...);
 
         if(categorySelect) categorySelect.addEventListener('change', async (e)=>{
             const selCat=e.target.value;
@@ -3019,7 +2991,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 saveAppState();
                 window.updateFlashcard();
             } 
-            // Không còn logic cho nextBtn trong practice mode cũ
         });
         if(prevBtn) prevBtn.addEventListener('click', ()=>{
             window.speechSynthesis.cancel();
@@ -3030,10 +3001,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             const txt=wordDisplay.dataset.ttsText;
             if(txt&&!speakerBtn.disabled)speakText(txt,currentWordSpansMeta);});
 
-
-        // Loại bỏ các event listener cho typing input và submit typing answer
-        // if(submitTypingAnswerBtn) submitTypingAnswerBtn.addEventListener('click', checkTypingAnswer);
-        // if(typingInput) typingInput.addEventListener('keypress', ...);
 
         if(addAnotherMeaningBlockAtEndBtn) addAnotherMeaningBlockAtEndBtn.addEventListener('click', () => addMeaningBlockToEnd());
         if(cardWordInput) cardWordInput.addEventListener('input', () => clearFieldError(cardWordInput, cardWordError));
