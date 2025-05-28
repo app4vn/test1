@@ -2,22 +2,35 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getAuth,
-  // onAuthStateChanged, // Vẫn cần thiết
-  // createUserWithEmailAndPassword, // Vẫn cần thiết
-  // signInWithEmailAndPassword, // Vẫn cần thiết
-  // signOut // Vẫn cần thiết
+  // onAuthStateChanged, // Kept for auth module
+  // createUserWithEmailAndPassword, // Kept for auth module
+  // signInWithEmailAndPassword, // Kept for auth module
+  // signOut // Kept for auth module
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  getFirestore, collection, addDoc, getDocs, doc, setDoc, updateDoc, deleteDoc, query, where, orderBy, serverTimestamp, getDoc, Timestamp
+  getFirestore,
+  // collection, // Kept for FirestoreService
+  // addDoc, // Kept for FirestoreService
+  // getDocs, // Kept for FirestoreService
+  // doc, // Kept for FirestoreService
+  // setDoc, // Kept for FirestoreService
+  // updateDoc, // Kept for FirestoreService
+  // deleteDoc, // Kept for FirestoreService
+  // query, // Kept for FirestoreService
+  // where, // Kept for FirestoreService
+  // orderBy, // Kept for FirestoreService
+  serverTimestamp,
+  // getDoc, // Kept for FirestoreService
+  // Timestamp // Kept for FirestoreService
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Import từ các module tự tạo
 import { initializeAuthModule, openAuthModal as openAuthModalFromAuth, getCurrentUserId, handleAuthAction as handleAuthActionFromAuth } from './auth.js';
 import * as FirestoreService from './firestoreService.js';
-// import { initializeSrsModule, processSrsRatingWrapper } from './srs.js'; // Loại bỏ SRS
+// SRS module import and related functions are removed
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBcBpsCGt-eWyAvtNaqxG0QncqzYDJwG70",
+  apiKey: "AIzaSyBcBpsCGt-eWyAvtNaqxG0QncqzYDJwG70", // Replace with your actual API key if needed
   authDomain: "fcard-84890.firebaseapp.com",
   projectId: "fcard-84890",
   storageBucket: "fcard-84890.appspot.com",
@@ -36,8 +49,8 @@ let mainHeaderTitle, cardSourceSelect, categorySelect, flashcardElement, wordDis
     nextBtn, currentCardIndexDisplay, totalCardsDisplay, speakerBtn, speakerExampleBtn,
     tagFilterContainer, tagSelect, searchInput, baseVerbFilterContainer, baseVerbSelect,
     practiceTypeSelect, practiceArea, multipleChoiceOptionsContainer, feedbackMessage,
-    filterCardStatusSelect, // Sẽ được đơn giản hóa hoặc loại bỏ
-    // btnSrsAgain, btnSrsHard, btnSrsGood, btnSrsEasy, // Loại bỏ các nút SRS
+    filterCardStatusSelect,
+    // SRS buttons are removed: btnSrsAgain, btnSrsHard, btnSrsGood, btnSrsEasy,
     hamburgerMenuBtn, filterSidebar, closeSidebarBtn, sidebarOverlay, tagsDisplayFront,
     typingInputContainer, typingInput, submitTypingAnswerBtn, openAddCardModalBtn,
     addEditCardModal, closeModalBtn, addEditCardForm, modalTitle, cardIdInput,
@@ -57,10 +70,10 @@ let mainHeaderTitle, cardSourceSelect, categorySelect, flashcardElement, wordDis
     bottomSheetOverlay, bottomSheet, bottomSheetTitle, closeBottomSheetBtn, bottomSheetContent,
     cardOptionsMenuBtn, cardOptionsMenuBtnBack,
     authActionButtonMain, userEmailDisplayMain,
-    srsFeedbackToastEl, // Có thể vẫn dùng cho các thông báo khác
+    // srsFeedbackToastEl is removed
     actionBtnNotes, actionBtnMedia, actionBtnPracticeCard,
     exitSingleCardPracticeBtn,
-    bottomSheetTabsContainer, tabBtnYouTube,
+    bottomSheetTabsContainer, tabBtnYouTube, // Assuming Youglish tab might be removed or kept
     flipIconFront, flipIconBack, cardFrontElement,
     recentlyViewedListElement, noRecentCardsMessageElement;
 
@@ -78,10 +91,9 @@ let currentInputMode = 'manual';
 let currentAnswerChecked = false;
 let currentCorrectAnswerForPractice = '';
 let userDecks = [];
-// let learningCardNextButtonTimer = null; // Loại bỏ nếu chỉ dùng cho SRS
-// let learningCardCountdownInterval = null; // Loại bỏ nếu chỉ dùng cho SRS
+// learningCardNextButtonTimer and learningCardCountdownInterval are removed (related to SRS learning status)
 let currentEditingCardId = null;
-let currentEditingDeckId = null;
+let currentEditingDeckId = null; // Keep for deck management
 let isSingleCardPracticeMode = false;
 let originalCurrentData = [];
 let originalCurrentIndex = 0;
@@ -90,19 +102,19 @@ let touchStartX = 0;
 let touchEndX = 0;
 let touchStartY = 0;
 let touchEndY = 0;
-const swipeThreshold = 50;
-// const swipeMaxVerticalOffset = 75; // Không thấy dùng, có thể xóa
+const swipeThreshold = 50; // Horizontal swipe threshold
+const swipeMaxVerticalOffset = 75; // Max vertical movement allowed during horizontal swipe
 
-let currentExampleSpeechRate = 1.0;
+let currentExampleSpeechRate = 1.0; // Default speech rate for examples
 const EXAMPLE_SPEECH_RATE_KEY = 'flashcardAppExampleSpeechRate';
-const MAX_RECENTLY_VIEWED_CARDS = 10;
+const MAX_RECENTLY_VIEWED_CARDS = 10; // Max number of cards in recently viewed list
 
-const ADMIN_UID = "xPLCuTRXnvNb9Uqa2ezFpOcyQmz2";
+const ADMIN_UID = "xPLCuTRXnvNb9Uqa2ezFpOcyQmz2"; // Replace with actual Admin UID if needed
 
 
 const tagDisplayNames = {"all": "Tất cả chủ đề", "actions_general": "Hành động chung", "actions_tasks": "Hành động & Nhiệm vụ", "movement_travel": "Di chuyển & Du lịch", "communication": "Giao tiếp", "relationships_social": "Quan hệ & Xã hội", "emotions_feelings": "Cảm xúc & Cảm giác", "problems_solutions": "Vấn đề & Giải pháp", "work_business": "Công việc & Kinh doanh", "learning_information": "Học tập & Thông tin", "daily_routine": "Thói quen hàng ngày", "health_wellbeing": "Sức khỏe & Tinh thần", "objects_possession": "Đồ vật & Sở hữu", "time_planning": "Thời gian & Kế hoạch", "money_finance": "Tiền bạc & Tài chính", "behavior_attitude": "Hành vi & Thái độ", "begin_end_change": "Bắt đầu, Kết thúc & Thay đổi", "food_drink": "Ăn uống", "home_living": "Nhà cửa & Đời sống", "rules_systems": "Quy tắc & Hệ thống", "effort_achievement": "Nỗ lực & Thành tựu", "safety_danger": "An toàn & Nguy hiểm", "technology": "Công nghệ", "nature": "Thiên nhiên & Thời tiết", "art_creation": "Nghệ thuật & Sáng tạo" };
 
-const sampleData = { // Dữ liệu mẫu không cần thay đổi nhiều, trừ khi nó có trường SRS/Favorite
+const sampleData = { // Sample data remains for web cards if no JSON is fetched
     "phrasalVerbs": [
         { "phrasalVerb": "Look up", "baseVerb": "look", "category": "phrasalVerbs", "pronunciation": "/lʊk ʌp/", "meanings": [ { "id": "m_pv_sample_1_1", "text": "Tra cứu (thông tin)", "notes": "Trong từ điển, danh bạ...", "examples": [ { "id": "ex_pv_sample_1_1_1", "eng": "I need to look up this word in the dictionary.", "vie": "Tôi cần tra từ này trong từ điển." }, { "id": "ex_pv_sample_1_1_2", "eng": "Can you look up the train times for me?", "vie": "Bạn có thể tra giờ tàu cho tôi được không?" } ]}], "tags": ["learning_information", "actions_tasks"], "generalNotes": "Một cụm động từ phổ biến." },
     ],
@@ -119,33 +131,32 @@ const sampleData = { // Dữ liệu mẫu không cần thay đổi nhiều, tr�
 };
 
 
-const defaultCategoryState = {
+const defaultCategoryState = { // SRS related fields removed
     searchTerm: '',
     baseVerb: 'all',
     tag: 'all',
-    // filterMarked: 'all_active', // Loại bỏ hoặc thay đổi ý nghĩa của filterMarked
-    filterCardDisplay: 'all', // Tên mới cho bộ lọc hiển thị thẻ, ví dụ: 'all', 'user_only', 'web_only'
+    filterMarked: 'all_cards', // Default to 'all_cards' instead of SRS-related filter
     currentIndex: 0,
-    deckId: 'all_user_cards'
+    deckId: 'all_user_cards' // For user source
 };
 
 const defaultAppState = {
     lastSelectedCategory: 'phrasalVerbs',
     lastSelectedSource: 'web',
-    lastSelectedDeckId: 'all_user_cards',
+    lastSelectedDeckId: 'all_user_cards', // For user source
     categoryStates: {},
-    recentlyViewedCards: []
+    recentlyViewedCards: [] // Keep recently viewed
 };
-let appState = JSON.parse(JSON.stringify(defaultAppState));
+let appState = JSON.parse(JSON.stringify(defaultAppState)); // Deep copy
 
-const appStateStorageKey = 'flashcardAppState_v5_no_srs_fav'; // Đổi key để tránh xung đột với state cũ
+const appStateStorageKey = 'flashcardAppState_v5_noSRS'; // Version up the key
 
 
 function generateUniqueId(prefix = 'id') {
-    return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 7)}`;
+    return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
 
-function getCardIdentifier(item){ // Hàm này vẫn hữu ích để định danh thẻ web
+function getCardIdentifier(item){ // Remains the same
     if(!item) return null;
     let keyPart;
     const category = item.category || 'unknown';
@@ -172,14 +183,14 @@ function getCardIdentifier(item){ // Hàm này vẫn hữu ích để định da
     return `${category}-${sanitizedKeyPart}`;
 }
 
-function closeSidebar(){
+function closeSidebar(){ // Remains the same
     if (filterSidebar) filterSidebar.classList.add('-translate-x-full');
     if (filterSidebar) filterSidebar.classList.remove('translate-x-0');
     if (sidebarOverlay) sidebarOverlay.classList.add('hidden');
 }
 
 
-async function loadAppState() {
+async function loadAppState() { // Logic for SRS fields in appState removed
     const userId = getCurrentUserId();
     console.log("Attempting to load AppState. Current user ID:", userId);
     if (userId) {
@@ -196,13 +207,13 @@ async function loadAppState() {
                     ...defaultCategoryState,
                     ...(appState.categoryStates[k] || {}),
                     searchTerm: appState.categoryStates[k]?.searchTerm || '',
-                    filterCardDisplay: appState.categoryStates[k]?.filterCardDisplay || defaultCategoryState.filterCardDisplay // Sử dụng filterCardDisplay
+                    filterMarked: appState.categoryStates[k]?.filterMarked || defaultCategoryState.filterMarked
                 };
             });
             if (appState.userPreferences && typeof appState.userPreferences.exampleSpeechRate === 'number') {
                 currentExampleSpeechRate = appState.userPreferences.exampleSpeechRate;
             }
-            console.log("AppState loaded from Firestore and merged with defaults:", JSON.parse(JSON.stringify(appState)));
+            console.log("AppState loaded from Firestore and merged with defaults (no SRS):", JSON.parse(JSON.stringify(appState)));
             localStorage.setItem(appStateStorageKey, JSON.stringify(appState));
             return;
         } else {
@@ -227,7 +238,7 @@ async function loadAppState() {
                     ...defaultCategoryState,
                     ...(appState.categoryStates[k] || {}),
                     searchTerm: appState.categoryStates[k]?.searchTerm || '',
-                    filterCardDisplay: appState.categoryStates[k]?.filterCardDisplay || defaultCategoryState.filterCardDisplay // Sử dụng filterCardDisplay
+                    filterMarked: appState.categoryStates[k]?.filterMarked || defaultCategoryState.filterMarked
                 };
             });
             if (appState.userPreferences && typeof appState.userPreferences.exampleSpeechRate === 'number') {
@@ -235,12 +246,12 @@ async function loadAppState() {
             } else {
                 loadExampleSpeechRate();
             }
-            console.log("AppState loaded from localStorage and merged with defaults:", JSON.parse(JSON.stringify(appState)));
+            console.log("AppState loaded from localStorage and merged with defaults (no SRS):", JSON.parse(JSON.stringify(appState)));
             if (userId) {
                 await FirestoreService.saveAppStateToFirestoreService(userId, appState);
             }
         } else {
-            console.log("No AppState in localStorage, using defaults.");
+            console.log("No AppState in localStorage, using defaults (no SRS).");
             appState = JSON.parse(JSON.stringify(defaultAppState));
             loadExampleSpeechRate();
              if (userId) {
@@ -250,7 +261,7 @@ async function loadAppState() {
             }
         }
     } catch (e) {
-        console.error("Lỗi load appState từ localStorage, using defaults:", e);
+        console.error("Lỗi load appState từ localStorage, using defaults (no SRS):", e);
         appState = JSON.parse(JSON.stringify(defaultAppState));
         loadExampleSpeechRate();
         if (userId) {
@@ -259,15 +270,16 @@ async function loadAppState() {
     }
 }
 
-async function saveAppState(){
+async function saveAppState(){ // Logic for SRS fields in appState removed
     if (!categorySelect || !filterCardStatusSelect || !userDeckSelect || !baseVerbSelect || !tagSelect) {
+        console.warn("saveAppState: One or more select elements are not available. Skipping save.");
         return;
     }
     const currentCategoryValue = categorySelect.value;
     const stateForCategory = getCategoryState(currentDatasetSource, currentCategoryValue);
 
     stateForCategory.currentIndex = window.currentIndex;
-    stateForCategory.filterCardDisplay = filterCardStatusSelect.value; // Sử dụng filterCardDisplay
+    stateForCategory.filterMarked = filterCardStatusSelect.value;
     if (currentDatasetSource === 'user') {
         stateForCategory.deckId = userDeckSelect.value;
     }
@@ -289,9 +301,9 @@ async function saveAppState(){
 
     try{
         localStorage.setItem(appStateStorageKey,JSON.stringify(appState));
-        console.log("AppState saved to localStorage.");
+        console.log("AppState saved to localStorage (no SRS).");
     }catch(e){
-        console.error("Lỗi save appState vào localStorage:", e);
+        console.error("Lỗi save appState vào localStorage (no SRS):", e);
     }
     const userId = getCurrentUserId();
     if (userId) {
@@ -299,22 +311,25 @@ async function saveAppState(){
     }
 }
 
-function getCategoryState(src, cat) {
+function getCategoryState(src, cat) { // SRS related fields removed from default
     const key = `${src}_${cat}`;
     if (!appState.categoryStates[key]) {
         appState.categoryStates[key] = JSON.parse(JSON.stringify(defaultCategoryState));
     } else {
+        // Ensure existing states merge with the (new) defaultCategoryState which has no SRS fields
+        const existingState = appState.categoryStates[key];
         appState.categoryStates[key] = {
-            ...defaultCategoryState,
-            ...appState.categoryStates[key],
-            searchTerm: appState.categoryStates[key].searchTerm || '',
-            filterCardDisplay: appState.categoryStates[key].filterCardDisplay || defaultCategoryState.filterCardDisplay // Sử dụng filterCardDisplay
+            ...defaultCategoryState, // Start with SRS-less default
+            ...existingState,        // Overlay existing values
+            searchTerm: existingState.searchTerm || '', // Ensure searchTerm is preserved
+             // filterMarked will now default to 'all_cards' if not present in existingState
+            filterMarked: existingState.filterMarked || defaultCategoryState.filterMarked
         };
     }
     return appState.categoryStates[key];
 }
 
-async function handleAuthStateChangedInApp(user) {
+async function handleAuthStateChangedInApp(user) { // Remains largely the same
     await loadAppState();
     renderRecentlyViewedList();
 
@@ -336,7 +351,7 @@ async function handleAuthStateChangedInApp(user) {
             authActionButtonMain.classList.replace('bg-red-500', 'bg-indigo-500');
             authActionButtonMain.classList.replace('hover:bg-red-600', 'hover:bg-indigo-600');
         }
-        console.log("User signed out. AppState loaded from localStorage or defaults.");
+        console.log("User signed out. AppState loaded from localStorage or defaults (no SRS).");
     }
 
     if (typeof setupInitialCategoryAndSource === 'function') {
@@ -347,23 +362,38 @@ async function handleAuthStateChangedInApp(user) {
     if (typeof updateMainHeaderTitle === 'function') updateMainHeaderTitle();
 }
 
-let toastTimeout;
+let toastTimeout; // General toast, no longer SRS specific
 function showToast(message, duration = 3000, type = 'info') {
-    if (!srsFeedbackToastEl) return; // Đổi tên biến này nếu cần, hoặc giữ lại cho thông báo chung
-    srsFeedbackToastEl.textContent = message;
-    srsFeedbackToastEl.className = 'fixed bottom-5 right-5 text-white text-sm py-3 px-5 rounded-lg shadow-md opacity-0 transition-opacity duration-500 ease-in-out z-[1010]';
-    srsFeedbackToastEl.classList.add('show');
+    const generalToastEl = document.createElement('div'); // Create toast dynamically or use a generic one
+    generalToastEl.id = 'general-feedback-toast';
+    generalToastEl.className = 'fixed bottom-5 right-5 text-white text-sm py-3 px-5 rounded-lg shadow-md opacity-0 transition-opacity duration-500 ease-in-out z-[1010]';
+    document.body.appendChild(generalToastEl);
 
-    if (type === 'error') srsFeedbackToastEl.classList.add('bg-red-600');
-    else if (type === 'success') srsFeedbackToastEl.classList.add('bg-green-600');
-    else srsFeedbackToastEl.classList.add('bg-slate-700');
+
+    generalToastEl.textContent = message;
+    generalToastEl.classList.remove('bg-red-600', 'bg-green-600', 'bg-slate-700', 'show'); // Reset classes
+
+    if (type === 'error') generalToastEl.classList.add('bg-red-600');
+    else if (type === 'success') generalToastEl.classList.add('bg-green-600');
+    else generalToastEl.classList.add('bg-slate-700');
+
+    requestAnimationFrame(() => { // Ensure repaint before adding 'show'
+        generalToastEl.classList.add('show');
+    });
 
     clearTimeout(toastTimeout);
-    toastTimeout = setTimeout(() => { srsFeedbackToastEl.classList.remove('show'); }, duration);
+    toastTimeout = setTimeout(() => {
+        generalToastEl.classList.remove('show');
+        setTimeout(() => { // Remove element after fade out
+            if (generalToastEl.parentNode) {
+                generalToastEl.parentNode.removeChild(generalToastEl);
+            }
+        }, 500);
+    }, duration);
 }
 
 
-function loadExampleSpeechRate() {
+function loadExampleSpeechRate() { // Remains the same
     const savedRate = localStorage.getItem(EXAMPLE_SPEECH_RATE_KEY);
     if (savedRate) {
         const rate = parseFloat(savedRate);
@@ -373,7 +403,7 @@ function loadExampleSpeechRate() {
     }
 }
 
-function saveExampleSpeechRate() {
+function saveExampleSpeechRate() { // Remains the same
     localStorage.setItem(EXAMPLE_SPEECH_RATE_KEY, currentExampleSpeechRate.toString());
     if (getCurrentUserId() && appState) {
         appState.userPreferences = appState.userPreferences || {};
@@ -382,7 +412,7 @@ function saveExampleSpeechRate() {
     }
 }
 
-function updateAllExampleSpeechRateDropdownsUI() {
+function updateAllExampleSpeechRateDropdownsUI() { // Remains the same
     const allDropdowns = document.querySelectorAll('.example-speech-rate-select');
     allDropdowns.forEach(dropdown => {
         if (dropdown) {
@@ -392,7 +422,7 @@ function updateAllExampleSpeechRateDropdownsUI() {
 }
 
 
-function speakText(txt, meta = [], cb = null) {
+function speakText(txt, meta = [], cb = null) { // Remains the same
     if (!txt || !txt.trim()) { if (cb) cb(); return; }
     if ('speechSynthesis' in window) {
         const u = new SpeechSynthesisUtterance(txt);
@@ -418,7 +448,7 @@ function speakText(txt, meta = [], cb = null) {
     } else { console.warn("Trình duyệt không hỗ trợ Speech Synthesis."); if (cb) cb(); }
 }
 
-function speakExample(text, spansMeta) {
+function speakExample(text, spansMeta) { // Remains the same
     if (!text || !text.trim()) return;
     if ('speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(text);
@@ -464,7 +494,7 @@ function speakExample(text, spansMeta) {
 }
 
 
-function generateCardLectureId(cardItem) {
+function generateCardLectureId(cardItem) { // Remains the same
     if (!cardItem) return `unknown-lecture-${generateUniqueId('uid')}`;
     let keyPart;
     const category = cardItem.category || 'unknown';
@@ -492,7 +522,7 @@ function generateCardLectureId(cardItem) {
 }
 
 
-function renderRecentlyViewedList() {
+function renderRecentlyViewedList() { // Remains the same
     if (!recentlyViewedListElement || !noRecentCardsMessageElement) {
         console.warn("renderRecentlyViewedList: DOM elements for recently viewed list not found.");
         return;
@@ -551,7 +581,7 @@ function renderRecentlyViewedList() {
     });
 }
 
-async function navigateToRecentCard(recentCardInfo) {
+async function navigateToRecentCard(recentCardInfo) { // Remains the same
     if (!recentCardInfo) return;
     console.log("Navigating to recent card:", recentCardInfo);
     closeSidebar();
@@ -575,7 +605,7 @@ async function navigateToRecentCard(recentCardInfo) {
     const originalSearchTerm = searchInput.value;
     const originalBaseVerb = baseVerbSelect ? baseVerbSelect.value : 'all';
     const originalTag = tagSelect ? tagSelect.value : 'all';
-    const originalFilterDisplay = filterCardStatusSelect.value; // Sử dụng filterCardDisplay
+    const originalFilterMarked = filterCardStatusSelect.value;
 
     searchInput.value = '';
     if (baseVerbSelect) baseVerbSelect.value = 'all';
@@ -608,11 +638,11 @@ async function navigateToRecentCard(recentCardInfo) {
     searchInput.value = originalSearchTerm;
     if (baseVerbSelect) baseVerbSelect.value = originalBaseVerb;
     if (tagSelect) tagSelect.value = originalTag;
-    filterCardStatusSelect.value = originalFilterDisplay; // Sử dụng filterCardDisplay
+    filterCardStatusSelect.value = originalFilterMarked;
 }
 
 
-function addCardToRecentlyViewed(cardItem) {
+function addCardToRecentlyViewed(cardItem) { // Remains the same
     if (!cardItem) return;
 
     const term = cardItem.phrasalVerb || cardItem.collocation || cardItem.idiom || cardItem.word || 'N/A';
@@ -642,13 +672,78 @@ function addCardToRecentlyViewed(cardItem) {
     saveAppState();
 }
 
-// Loại bỏ toggleFavoriteStatus và updateFavoriteButtonUI
-// async function toggleFavoriteStatus(cardItem, favoriteButtonElement) { ... }
-// function updateFavoriteButtonUI(buttonElement, isFavorite) { ... }
+async function toggleFavoriteStatus(cardItem, favoriteButtonElement) { // Remains the same, but Firestore update will not include SRS fields
+    if (!cardItem) return;
+    const userId = getCurrentUserId();
+    if (!userId) {
+        showToast("Vui lòng đăng nhập để sử dụng chức năng yêu thích.", 3000, 'error');
+        openAuthModalFromAuth('login');
+        return;
+    }
+
+    const newFavoriteState = !(cardItem.isFavorite || false);
+
+    let success = false;
+    const dataToUpdate = { // Only update isFavorite and updatedAt
+        isFavorite: newFavoriteState,
+        updatedAt: serverTimestamp()
+    };
+
+    if (cardItem.isUserCard) {
+        if (!cardItem.id || !cardItem.deckId) {
+            console.error("toggleFavoriteStatus: Missing id or deckId for user card.", cardItem);
+            showToast("Lỗi: Không thể cập nhật thẻ người dùng.", 3000, 'error');
+            return;
+        }
+        success = await FirestoreService.saveCardToFirestore(userId, cardItem.deckId, dataToUpdate, cardItem.id);
+    } else {
+        const webCardGlobalId = getCardIdentifier(cardItem);
+        if (!webCardGlobalId) {
+            console.error("toggleFavoriteStatus: Could not get identifier for web card.", cardItem);
+            showToast("Lỗi: Không thể cập nhật thẻ web.", 3000, 'error');
+            return;
+        }
+        // For web cards, we only store isFavorite and potentially a reference to the original card.
+        // The srsDataToUpdate in the original code was a bit misleading here for just favorite toggling.
+        // We should ensure FirestoreService.updateWebCardStatusInFirestore handles this correctly.
+        // It should primarily update 'isFavorite' and 'updatedAt'.
+        const statusUpdatePayload = { isFavorite: newFavoriteState, updatedAt: serverTimestamp() };
+        success = await FirestoreService.updateWebCardStatusInFirestore(userId, webCardGlobalId, cardItem, statusUpdatePayload);
+    }
+
+    if (success) {
+        cardItem.isFavorite = newFavoriteState;
+        cardItem.updatedAt = Date.now(); // Update client-side timestamp
+
+        if (favoriteButtonElement) {
+            updateFavoriteButtonUI(favoriteButtonElement, newFavoriteState);
+        }
+        showToast(newFavoriteState ? "Đã thêm vào Yêu thích!" : "Đã xóa khỏi Yêu thích.", 2000, 'success');
+
+        if (filterCardStatusSelect && filterCardStatusSelect.value === 'favorites') {
+            applyAllFilters(); // Re-apply filters if currently viewing favorites
+        }
+    } else {
+        showToast("Lỗi cập nhật trạng thái yêu thích. Vui lòng thử lại.", 3000, 'error');
+    }
+}
+
+function updateFavoriteButtonUI(buttonElement, isFavorite) { // Remains the same
+    if (!buttonElement) return;
+    // const icon = buttonElement.querySelector('i'); // Not strictly needed if innerHTML is replaced
+    if (isFavorite) {
+        buttonElement.innerHTML = `<i class="fas fa-star w-5 mr-3 text-yellow-400"></i> Bỏ Yêu thích`;
+        buttonElement.classList.add('favorited'); // Assuming 'favorited' class styles the filled star
+    } else {
+        buttonElement.innerHTML = `<i class="far fa-star w-5 mr-3 text-slate-500"></i> Thêm vào Yêu thích`;
+        buttonElement.classList.remove('favorited');
+    }
+}
 
 
 // Logic chính của ứng dụng
 document.addEventListener('DOMContentLoaded', async () => {
+    // DOM Element assignments (many remain the same)
     mainHeaderTitle = document.getElementById('main-header-title');
     cardSourceSelect = document.getElementById('card-source-select');
     categorySelect = document.getElementById('category');
@@ -674,12 +769,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     practiceArea = document.getElementById('practice-area');
     multipleChoiceOptionsContainer = document.getElementById('multiple-choice-options');
     feedbackMessage = document.getElementById('feedback-message');
-    filterCardStatusSelect = document.getElementById('filter-card-status'); // Sẽ được đơn giản hóa
-    // Các nút SRS đã bị loại bỏ khỏi HTML, không cần lấy DOM nữa
-    // btnSrsAgain = document.getElementById('btn-srs-again');
-    // btnSrsHard = document.getElementById('btn-srs-hard');
-    // btnSrsGood = document.getElementById('btn-srs-good');
-    // btnSrsEasy = document.getElementById('btn-srs-easy');
+    filterCardStatusSelect = document.getElementById('filter-card-status');
+    // SRS buttons removed from DOM list
     hamburgerMenuBtn = document.getElementById('hamburger-menu-btn');
     filterSidebar = document.getElementById('filter-sidebar');
     closeSidebarBtn = document.getElementById('close-sidebar-btn');
@@ -748,7 +839,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     cardOptionsMenuBtnBack = document.getElementById('card-options-menu-btn-back');
     authActionButtonMain = document.getElementById('auth-action-btn');
     userEmailDisplayMain = document.getElementById('user-email-display');
-    srsFeedbackToastEl = document.getElementById('srs-feedback-toast');
+    // srsFeedbackToastEl removed
     actionBtnNotes = document.getElementById('action-btn-notes');
     actionBtnMedia = document.getElementById('action-btn-media');
     actionBtnPracticeCard = document.getElementById('action-btn-practice-card');
@@ -761,7 +852,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     noRecentCardsMessageElement = document.getElementById('no-recent-cards-message');
 
 
-    window.wordDisplay = wordDisplay;
+    window.wordDisplay = wordDisplay; // Keep for TTS
     window.updateSidebarFilterVisibility = updateSidebarFilterVisibility;
     window.updateMainHeaderTitle = updateMainHeaderTitle;
     window.loadVocabularyData = loadVocabularyData;
@@ -769,18 +860,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     initializeAuthModule(fbAuth, handleAuthStateChangedInApp);
     FirestoreService.initializeFirestoreService(db);
-    // initializeSrsModule({ // Không khởi tạo SRS module nữa
-        // firestoreServiceModule: FirestoreService,
-        // authGetCurrentUserIdFunc: getCurrentUserId,
-        // utilGetWebCardGlobalIdFunc: getCardIdentifier,
-        // uiUpdateStatusButtonsFunc: updateStatusButtonsUI, // Sẽ được loại bỏ hoặc thay đổi
-        // uiUpdateFlashcardFunc: updateFlashcard,
-        // uiNextBtnElement: nextBtn,
-        // dataGetCurrentCardFunc: () => window.currentData[window.currentIndex],
-        // dataGetWindowCurrentDataFunc: () => window.currentData,
-        // dataGetCurrentIndexFunc: () => window.currentIndex,
-        // uiShowToastFunc: showToast
-    // });
+    // SRS module initialization removed
 
     loadExampleSpeechRate();
 
@@ -791,7 +871,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function displayFieldError(inputElement, errorElement, message) { if (errorElement) { errorElement.textContent = message; errorElement.classList.remove('hidden'); } if (inputElement) { inputElement.classList.add('input-error-border'); } }
     function clearFieldError(inputElement, errorElement) { if (errorElement) { errorElement.textContent = ''; errorElement.classList.add('hidden'); } if (inputElement) { inputElement.classList.remove('input-error-border'); } }
-    function clearAllFormErrors() {
+    function clearAllFormErrors() { // Remains the same
         clearFieldError(cardWordInput, cardWordError);
         if (meaningBlocksGeneralError) meaningBlocksGeneralError.classList.add('hidden');
         if (meaningBlocksGeneralError) meaningBlocksGeneralError.textContent = '';
@@ -813,7 +893,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function addMeaningBlockToEnd(meaningBlockData) { meaningBlocksContainer.appendChild(createMeaningBlockElement(meaningBlockData)); updateRemoveMeaningBlockButtonsState(); }
     function updateRemoveMeaningBlockButtonsState() { const meaningBlocks = meaningBlocksContainer.querySelectorAll('.meaning-block'); meaningBlocks.forEach(block => { const removeBtn = block.querySelector('.remove-meaning-block-btn'); if (removeBtn) removeBtn.disabled = meaningBlocks.length <= 1; }); }
 
-    async function loadUserDecks() {
+    async function loadUserDecks() { // Remains the same
         const userId = getCurrentUserId();
         if (!userId) {
             userDecks = [];
@@ -826,7 +906,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderExistingDecksList();
     }
 
-    async function createDeck(name) {
+    async function createDeck(name) { // Remains the same
         const userId = getCurrentUserId();
         if (!userId) {
             alert("Vui lòng đăng nhập để tạo bộ thẻ.");
@@ -854,7 +934,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return createdDeck;
     }
 
-    async function updateDeckName(id, newName) {
+    async function updateDeckName(id, newName) { // Remains the same
         const userId = getCurrentUserId();
         if (!userId) { alert("Vui lòng đăng nhập."); return false; }
         if (!newName || !newName.trim()) { alert("Tên bộ thẻ không được để trống!"); return false; }
@@ -879,7 +959,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return success;
     }
 
-    function populateDeckSelects() {
+    function populateDeckSelects() { // Remains the same
         const deckSelects = [userDeckSelect, cardDeckAssignmentSelect, jsonCardDeckAssignmentSelect, copyToDeckSelect];
         deckSelects.forEach(selectEl => {
             if (selectEl) {
@@ -908,7 +988,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
     }
-    function renderExistingDecksList() {
+    function renderExistingDecksList() { // Remains the same
         existingDecksList.innerHTML = '';
         if (!Array.isArray(userDecks) || !userDecks.length) {
             existingDecksList.innerHTML = '<p class="text-slate-500 italic">Chưa có bộ thẻ nào.</p>'; return;
@@ -937,7 +1017,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             existingDecksList.appendChild(itemDiv);
         });
     }
-    function startEditDeckName(id, el) {
+    function startEditDeckName(id, el) { // Remains the same
         const currentlyEditingInput = existingDecksList.querySelector('.editing-deck-input');
         if(currentlyEditingInput){
             const parentItem = currentlyEditingInput.closest('.deck-item');
@@ -981,7 +1061,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         input.focus();
         input.select();
     }
-    async function handleSaveDeckName(id, name, el){
+    async function handleSaveDeckName(id, name, el){ // Remains the same
         const success = await updateDeckName(id, name.trim());
         if (success) {
             cancelEditDeckName(id, el, name.trim());
@@ -989,7 +1069,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentEditingDeckId = null;
         return success;
     }
-    function cancelEditDeckName(id, el, originalName = null){
+    function cancelEditDeckName(id, el, originalName = null){ // Remains the same
         const nameSpan = el.querySelector('.deck-name-display');
         const actionsDiv = el.querySelector('.deck-actions');
         const editControlsDiv = el.querySelector('.edit-deck-controls');
@@ -1002,7 +1082,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentEditingDeckId = null;
     }
 
-    async function getAllUniqueBaseVerbs() {
+    async function getAllUniqueBaseVerbs() { // Remains the same
         const allBaseVerbs = new Set();
         if (sampleData.phrasalVerbs) {
             sampleData.phrasalVerbs.forEach(card => {if (card.baseVerb) allBaseVerbs.add(card.baseVerb.trim())});
@@ -1023,7 +1103,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         return [...allBaseVerbs].filter(bv => bv).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
     }
-    async function getAllUniqueTags() {
+    async function getAllUniqueTags() { // Remains the same
         const allTags = new Set();
         const categoriesWithTags = ['phrasalVerbs', 'collocations', 'idioms'];
 
@@ -1053,14 +1133,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     function showAutocompleteSuggestions(inputElement, suggestions, forTags = false) { hideAutocompleteSuggestions(inputElement); if (suggestions.length === 0) { return; } const suggestionsList = document.createElement('div'); suggestionsList.className = 'autocomplete-suggestions-list'; suggestionsList.id = `${inputElement.id}-suggestions`; suggestions.forEach(suggestionText => { const item = document.createElement('div'); item.className = 'autocomplete-suggestion-item'; item.textContent = suggestionText; item.onclick = () => { if (forTags) { const currentValue = inputElement.value; const parts = currentValue.split(',').map(p => p.trim()); parts.pop(); parts.push(suggestionText); inputElement.value = parts.join(', ') + ', '; } else { inputElement.value = suggestionText; } hideAutocompleteSuggestions(inputElement); inputElement.focus(); inputElement.dispatchEvent(new Event('input', { bubbles: true })); }; suggestionsList.appendChild(item); }); inputElement.parentNode.appendChild(suggestionsList); }
     function hideAutocompleteSuggestions(inputElement) { const listId = `${inputElement.id}-suggestions`; const existingList = document.getElementById(listId); if (existingList) { existingList.remove(); } }
 
-    function openSidebar(){
+    function openSidebar(){ // Remains the same
         if (filterSidebar) filterSidebar.classList.remove('-translate-x-full');
         if (filterSidebar) filterSidebar.classList.add('translate-x-0');
         if (sidebarOverlay) sidebarOverlay.classList.remove('hidden');
         updateSidebarFilterVisibility();
     }
 
-    function updateSidebarFilterVisibility (){
+    function updateSidebarFilterVisibility (){ // Remains the same
         const cat=categorySelect.value;
         const isPVOrCollocation = cat === 'phrasalVerbs' || cat === 'collocations';
         const isIdiom = cat === 'idioms';
@@ -1080,7 +1160,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (openAddCardModalBtn) openAddCardModalBtn.disabled = !isUserSource || !isLoggedIn;
     }
 
-    function updateMainHeaderTitle() {
+    function updateMainHeaderTitle() { // Remains the same
         const userId = getCurrentUserId();
         const sourceText = currentDatasetSource === 'web' ? "Thẻ của Web" : (userId ? "Thẻ của Tôi" : "Thẻ của Web (Chưa đăng nhập)");
         let deckText = "";
@@ -1094,7 +1174,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         mainHeaderTitle.textContent = `${sourceText}${deckText} - ${categoryText}`;
     }
 
-    async function openAddEditModal(mode = 'add', cardData = null) {
+    async function openAddEditModal(mode = 'add', cardData = null) { // Remains the same
         const userId = getCurrentUserId();
         if (cardSourceSelect.value === 'user' && !userId && mode !== 'json_import') {
             alert("Vui lòng đăng nhập để thêm hoặc sửa thẻ của bạn.");
@@ -1233,7 +1313,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    function closeAddEditModal(){
+    function closeAddEditModal(){ // Remains the same
         hideAutocompleteSuggestions(cardBaseVerbInput);
         hideAutocompleteSuggestions(cardTagsInput);
         addEditCardModal.classList.add('opacity-0');
@@ -1243,13 +1323,31 @@ document.addEventListener('DOMContentLoaded', async () => {
             switchToInputMode('manual');
         },250);
     }
-    // function clearLearningTimer(){clearTimeout(learningCardNextButtonTimer);learningCardNextButtonTimer=null;clearInterval(learningCardCountdownInterval);learningCardCountdownInterval=null;if(nextBtn&&nextBtn.textContent.includes('('))nextBtn.innerHTML='Tiếp <i class="fas fa-arrow-right ml-1"></i>';} // Không còn dùng đến
-    // async function startLearningTimer(){ ... } // Không còn dùng đến
 
-    // async function getCardStatus(cardItem){ ... } // Hàm này không còn ý nghĩa khi bỏ SRS
-    // async function updateStatusButtonsUI(){ ... } // Hàm này không còn ý nghĩa khi bỏ SRS
+    // clearLearningTimer and startLearningTimer removed (SRS related)
 
-    async function loadUserCards(deckIdToLoad = null) {
+    async function getCardStatus(cardItem){ // Simplified, no SRS status
+        if (!cardItem) return { isFavorite: false }; // Only care about favorite status now
+        const userId = getCurrentUserId();
+
+        if (cardItem.isUserCard) {
+            return {
+                isFavorite: cardItem.isFavorite || false
+            };
+        } else {
+            if (userId) {
+                const firestoreStatus = await FirestoreService.getWebCardStatusFromFirestore(userId, getCardIdentifier(cardItem));
+                return {
+                    isFavorite: firestoreStatus?.isFavorite || false
+                };
+            }
+            return {isFavorite: false};
+        }
+    }
+
+    // updateStatusButtonsUI removed (was for SRS buttons)
+
+    async function loadUserCards(deckIdToLoad = null) { // SRS fields removed from map
         const userId = getCurrentUserId();
         if (!userId) {
             console.log("loadUserCards: No user logged in.");
@@ -1270,18 +1368,26 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
              console.log(`All cards loaded for user ${userId}:`, cards);
         } else if (selectedDeckId === 'unassigned_cards') {
+            // This logic will need adjustment if unassigned cards are not directly loaded but filtered.
+            // For now, assuming FirestoreService handles this or it's filtered later.
             if (Array.isArray(userDecks)) {
-                for (const deck of userDecks) {
+                for (const deck of userDecks) { // This would load all cards again
                     const deckCards = await FirestoreService.loadUserCardsFromFirestore(userId, deck.id);
                     cards.push(...deckCards);
                 }
             }
         }
-        // Loại bỏ isSuspended và videoUrl nếu không cần thiết nữa
-        return cards.map(card => ({ ...card, videoUrl: card.videoUrl || null }));
+        // Map to ensure isFavorite exists, remove SRS fields
+        return cards.map(card => ({
+            ...card,
+            isUserCard: true, // Ensure this flag is set for user cards
+            isFavorite: card.isFavorite || false,
+            videoUrl: card.videoUrl || null
+            // SRS fields like status, lastReviewed, nextReviewDate, interval, easeFactor, repetitions, isSuspended are removed
+        }));
     }
 
-    async function handleSaveCard() {
+    async function handleSaveCard() { // SRS fields removed from cardDataToSave
         const userId = getCurrentUserId();
         if (!userId && cardSourceSelect.value === 'user') {
             alert("Vui lòng đăng nhập để lưu thẻ.");
@@ -1351,9 +1457,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         }).filter(m => m);
 
         const editingCardId = cardIdInput.value;
-        // Không còn lấy dữ liệu SRS/Favorite cũ nữa
-        // let existingCardData = {};
-        // if (editingCardId) { ... }
+        let existingCardData = {};
+        if (editingCardId) {
+            const currentCardInList = window.currentData.find(c => c.id === editingCardId && c.isUserCard);
+            if (currentCardInList) {
+                existingCardData = { ...currentCardInList };
+            }
+        }
+
 
         const cardDataToSave = {
             pronunciation: cardPronunciationInput.value.trim(),
@@ -1361,8 +1472,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             generalNotes: cardGeneralNotesInput.value.trim(),
             videoUrl: cardVideoUrlInput.value.trim() || null,
             category: cardCategory,
+            isFavorite: editingCardId ? (existingCardData.isFavorite || false) : false,
             updatedAt: serverTimestamp()
-            // Loại bỏ tất cả các trường SRS và isFavorite
+            // SRS fields removed: status, lastReviewed, reviewCount, nextReviewDate, interval, easeFactor, repetitions, isSuspended
         };
 
         if (!editingCardId) {
@@ -1395,7 +1507,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
         if (savedCardId) {
-            alert(editingCardId ? "Đã cập nhật thẻ!" : "Đã thêm thẻ mới!");
+            showToast(editingCardId ? "Đã cập nhật thẻ!" : "Đã thêm thẻ mới!", 2000, 'success');
             closeAddEditModal();
             if (currentDatasetSource === 'user') {
                 await loadVocabularyData(categorySelect.value);
@@ -1404,7 +1516,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentEditingCardId = null;
     }
 
-    async function handleDeleteCard(){
+    async function handleDeleteCard(){ // Remains largely the same
         const userId = getCurrentUserId();
         if (!userId) {
             alert("Vui lòng đăng nhập để xóa thẻ.");
@@ -1429,7 +1541,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const success = await FirestoreService.deleteCardFromFirestore(userId, deckIdOfCard, cardIdToDelete);
 
         if (success) {
-            alert("Đã xóa thẻ.");
+            showToast("Đã xóa thẻ.", 2000, 'success');
             let newIndex = window.currentIndex;
             if(window.currentIndex >= window.currentData.length - 1 && window.currentIndex > 0) {
                 newIndex = window.currentIndex - 1;
@@ -1454,9 +1566,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     function populateBaseVerbFilter(arr){const bV=new Set();arr.forEach(i=>{if(i.baseVerb)bV.add(i.baseVerb);});baseVerbSelect.innerHTML='';const oA=document.createElement('option');oA.value='all';oA.textContent='Tất cả từ gốc';baseVerbSelect.appendChild(oA);const sBV=Array.from(bV).sort((a,b)=>a.localeCompare(b,'en'));sBV.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v.charAt(0).toUpperCase()+v.slice(1);baseVerbSelect.appendChild(o);});}
     function populateTagFilter(arr){const tT=new Set();arr.forEach(i=>{if(i.tags&&Array.isArray(i.tags)){i.tags.forEach(t=>{if(tagDisplayNames[t]&&t!=='all'&&!t.startsWith('particle_'))tT.add(t);});}});tagSelect.innerHTML='';const oA=document.createElement('option');oA.value='all';oA.textContent=tagDisplayNames["all"]||'Tất cả chủ đề';tagSelect.appendChild(oA);const sTK=Array.from(tT).sort((a,b)=>(tagDisplayNames[a]||a).localeCompare(tagDisplayNames[b]||b,'vi'));sTK.forEach(tK=>{const o=document.createElement('option');o.value=tK;o.textContent=tagDisplayNames[tK]||(tK.charAt(0).toUpperCase()+tK.slice(1));tagSelect.appendChild(o);});}
 
-    async function applyAllFilters(fromLoad=false){
+    async function applyAllFilters(fromLoad=false){ // SRS filter logic removed
         const userId = getCurrentUserId();
-        // clearLearningTimer(); // Không còn timer
+        // clearLearningTimer(); // Removed, was SRS related
         const cCV = categorySelect.value;
         const sFCSC = getCategoryState(currentDatasetSource, cCV);
         let cST = searchInput.value.trim().toLowerCase();
@@ -1473,7 +1585,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (currentDatasetSource === 'user' && userId) {
                 sFCSC.deckId = userDeckSelect.value;
             }
-            sFCSC.filterCardDisplay = filterCardStatusSelect.value; // Sử dụng filterCardDisplay
+            sFCSC.filterMarked = filterCardStatusSelect.value;
             sFCSC.currentIndex = 0;
         }
 
@@ -1517,16 +1629,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
-        const selectedFilterValue = sFCSC.filterCardDisplay; // Sử dụng filterCardDisplay
-        console.log("Applying filter: ", selectedFilterValue);
+        const selectedFilterValue = sFCSC.filterMarked;
+        console.log("Applying filter (no SRS): ", selectedFilterValue);
 
-        // Đơn giản hóa bộ lọc hiển thị thẻ, không còn dựa vào trạng thái SRS
-        if (selectedFilterValue === 'user_cards_only' && userId) { // Ví dụ: một tùy chọn mới
-            lTP = lTP.filter(item => item.isUserCard);
-        } else if (selectedFilterValue === 'web_cards_only') { // Ví dụ: một tùy chọn mới
-            lTP = lTP.filter(item => !item.isUserCard);
+        if (selectedFilterValue === 'favorites') {
+            if (userId) {
+                lTP = lTP.filter(item => item.isFavorite === true);
+            } else {
+                lTP = [];
+                showToast("Vui lòng đăng nhập để xem thẻ yêu thích.", 3000, 'info');
+            }
+        } else if (selectedFilterValue === 'all_cards') {
+            // No additional filtering needed for 'all_cards'
         }
-        // Mặc định là 'all' (hiển thị tất cả thẻ đã qua các bộ lọc khác)
+        // 'all_visible' and SRS status filters removed
 
         console.log(`Filtered list length for '${selectedFilterValue}': ${lTP.length} cards`);
 
@@ -1546,17 +1662,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.updateMainHeaderTitle();
     }
 
-    async function loadVocabularyData (category) {
+    async function loadVocabularyData (category) { // SRS fields removed from card mapping
         const userId = getCurrentUserId();
-        // clearLearningTimer(); // Không còn timer
+        // clearLearningTimer(); // Removed
         wordDisplay.innerHTML = '<span class="text-slate-400 text-xl">Đang tải dữ liệu...</span>';
         currentWordSpansMeta = []; pronunciationDisplay.textContent = ''; tagsDisplayFront.textContent = ''; meaningDisplayContainer.innerHTML = ''; notesDisplay.innerHTML = '';
         window.currentData = []; activeMasterList = []; speakerBtn.disabled = true;
         if (speakerExampleBtn) speakerExampleBtn.style.display = 'none';
 
         const stateForCurrentSourceCategory = getCategoryState(currentDatasetSource, category);
-        // Cập nhật filterCardStatusSelect với giá trị mới (filterCardDisplay)
-        filterCardStatusSelect.value = stateForCurrentSourceCategory.filterCardDisplay || defaultCategoryState.filterCardDisplay;
+        filterCardStatusSelect.value = stateForCurrentSourceCategory.filterMarked || defaultCategoryState.filterMarked;
 
 
         if (currentDatasetSource === 'user') {
@@ -1568,7 +1683,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     openAuthModalFromAuth('login');
                 };
                 pronunciationDisplay.style.display = 'none'; tagsDisplayFront.style.display = 'none'; speakerBtn.style.display = 'none';
-                // updateStatusButtonsUI(); // Không còn nút SRS
                 updateCardInfo(); window.updateMainHeaderTitle(); window.updateSidebarFilterVisibility();
                 return;
             }
@@ -1615,35 +1729,35 @@ document.addEventListener('DOMContentLoaded', async () => {
                             });
                         }
 
-                        return { // Loại bỏ các trường SRS/Favorite khỏi thẻ web khi tải
+                        return {
                             ...card,
                             id: getCardIdentifier(card),
                             isUserCard: false,
                             category: category,
                             meanings: meaningsArray,
                             generalNotes: card.generalNotes || card.notes || '',
-                            videoUrl: card.videoUrl || null
-                            // Không còn status, lastReviewed, isFavorite, etc. cho thẻ web ở đây
+                            videoUrl: card.videoUrl || null,
+                            isFavorite: false // Default favorite to false for web cards
+                            // SRS fields removed
                         };
                     });
 
-                    // Nếu người dùng đăng nhập, có thể vẫn muốn lấy một số trạng thái tối thiểu cho thẻ web (nếu có)
-                    // Nhưng vì SRS và Favorite đã bị loại bỏ, phần này có thể không cần thiết.
-                    // if (userId && webCards.length > 0) {
-                    //     const statusPromises = webCards.map(async (card) => {
-                    //         const webId = card.id;
-                    //         if (webId) {
-                    //             const firestoreStatus = await FirestoreService.getWebCardStatusFromFirestore(userId, webId);
-                    //             if (firestoreStatus) { // firestoreStatus giờ sẽ rất tối thiểu
-                    //                 // card.someOtherWebCardProperty = firestoreStatus.someOtherWebCardProperty;
-                    //             }
-                    //         }
-                    //         return card;
-                    //     });
-                    //     activeMasterList = await Promise.all(statusPromises);
-                    // } else {
+                    if (userId && webCards.length > 0) {
+                        const statusPromises = webCards.map(async (card) => {
+                            const webId = card.id;
+                            if (webId) {
+                                const firestoreStatus = await FirestoreService.getWebCardStatusFromFirestore(userId, webId);
+                                if (firestoreStatus) {
+                                    card.isFavorite = firestoreStatus.isFavorite || false;
+                                    card.videoUrl = firestoreStatus.videoUrl || card.videoUrl || null; // Persist user-set video URL for web cards
+                                }
+                            }
+                            return card;
+                        });
+                        activeMasterList = await Promise.all(statusPromises);
+                    } else {
                         activeMasterList = webCards;
-                    // }
+                    }
                 } else {
                     console.warn(`Không có dữ liệu trong ${category}.json. Sử dụng dữ liệu mẫu.`);
                     throw new Error('Empty JSON data');
@@ -1656,8 +1770,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                         id: getCardIdentifier({category: category, word: card.word, phrasalVerb: card.phrasalVerb, collocation: card.collocation, idiom: card.idiom}),
                         isUserCard: false,
                         category: category,
+                        isFavorite: false,
                         videoUrl: card.videoUrl || null
-                        // Không có trường SRS/Favorite
+                        // SRS fields removed
                     }));
                     console.log(`Đã tải dữ liệu mẫu cho '${category}'.`);
                 } else {
@@ -1687,9 +1802,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         applyAllFilters(true);
     }
 
-    function updateFlashcard() {
+    function updateFlashcard() { // SRS related UI updates removed
         const userId = getCurrentUserId();
-        // clearLearningTimer(); // Không còn timer
+        // clearLearningTimer(); // Removed
         currentAnswerChecked = false;
         feedbackMessage.textContent = ''; feedbackMessage.className = 'mt-3 p-3 rounded-md w-full text-center font-semibold hidden';
         multipleChoiceOptionsContainer.innerHTML = '';
@@ -1779,11 +1894,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         const item = window.currentData.length > 0 ? window.currentData[window.currentIndex] : null;
-        console.log('[updateFlashcard] Rendering card. Item:', JSON.parse(JSON.stringify(item)));
+        console.log('[updateFlashcard] Rendering card (no SRS). Item:', JSON.parse(JSON.stringify(item)));
 
         if (item) {
             addCardToRecentlyViewed(item);
-            // Không còn isFavorite, isSuspended, status để kiểm tra/đặt mặc định
+            if (typeof item.isFavorite === 'undefined') {
+                item.isFavorite = false;
+            }
+            // No SRS status to manage here
         }
 
 
@@ -1815,7 +1933,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if(flipBtn) flipBtn.disabled = true;
             if(flipIconFront) flipIconFront.style.display = 'none';
             if(flipIconBack) flipIconBack.style.display = 'none';
-            // updateStatusButtonsUI(); // Không còn nút SRS
+            // updateStatusButtonsUI(); // Removed
         } else {
             if(pronunciationDisplay) pronunciationDisplay.style.display = 'block';
             if(tagsDisplayFront) tagsDisplayFront.style.display = 'block';
@@ -1982,7 +2100,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             textContentDiv.appendChild(enLabel);
 
                             const exampleText = ex.eng.trim();
-                            // let exampleAccCC = 0; // Không còn dùng để highlight
+                            let exampleAccCC = 0;
                             if (exampleText) {
                                 const exampleWords = exampleText.split(/(\s+)/);
                                 exampleWords.forEach(wordPart => {
@@ -1993,7 +2111,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                                     } else {
                                         textContentDiv.appendChild(document.createTextNode(wordPart));
                                     }
-                                    // exampleAccCC += wordPart.length; // Không còn dùng
+                                    exampleAccCC += wordPart.length;
                                 });
                             } else {
                                 textContentDiv.appendChild(document.createTextNode(exampleText));
@@ -2013,9 +2131,23 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 playSingleExBtn.addEventListener('click', (e) => {
                                     e.stopPropagation();
                                     const text = e.currentTarget.dataset.textToSpeak;
-                                    // Loại bỏ logic highlight từ speakExample nếu không cần thiết nữa
+                                    const clickedExampleTextContentDiv = e.currentTarget.closest('.example-eng-on-card').querySelector('.text-content');
+                                    const localExampleSpansMeta = [];
+                                    let localAccCC = 0;
+
+                                    if (clickedExampleTextContentDiv && text) {
+                                        const childNodes = Array.from(clickedExampleTextContentDiv.childNodes);
+                                        childNodes.forEach(node => {
+                                            if (node.nodeType === Node.TEXT_NODE) {
+                                                localAccCC += node.textContent.length;
+                                            } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'SPAN' && !node.classList.contains('example-label')) {
+                                                localExampleSpansMeta.push({element: node, start: localAccCC, length: node.textContent.length});
+                                                localAccCC += node.textContent.length;
+                                            }
+                                        });
+                                    }
                                     if (text) {
-                                        speakExample(text, []); // Truyền mảng rỗng cho spansMeta
+                                        speakExample(text, localExampleSpansMeta);
                                     }
                                 });
                                 controlsDiv.appendChild(playSingleExBtn);
@@ -2100,13 +2232,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
             if(speakerBtn) speakerBtn.disabled = !textForTTS.trim() || (practiceType === 'word_quiz');
-            // updateStatusButtonsUI(); // Không còn nút SRS
+            // updateStatusButtonsUI(); // Removed
         }
         updateCardInfo();
-        // if (practiceType === 'off' && !isSingleCardPracticeMode) startLearningTimer(); // Không còn timer
+        // if (practiceType === 'off' && !isSingleCardPracticeMode) startLearningTimer(); // Removed
     };
 
-    function updateCardInfo(){
+    function updateCardInfo(){ // Remains largely the same, practice mode logic might simplify
         if(currentCardIndexDisplay) currentCardIndexDisplay.textContent = window.currentData.length > 0 ? window.currentIndex + 1 : 0;
         if(totalCardsDisplay) totalCardsDisplay.textContent = window.currentData.length;
 
@@ -2123,14 +2255,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if(prevBtn) prevBtn.disabled = window.currentIndex === 0 || window.currentData.length === 0;
             let nextDisabled = (window.currentIndex >= window.currentData.length - 1 || window.currentData.length === 0);
-            if (practiceType !== "off") nextDisabled = nextDisabled || (!currentAnswerChecked && window.currentData.length > 0) || (window.currentData.length > 0 && window.currentIndex >= window.currentData.length - 1 && !currentAnswerChecked);
-            // if (!learningCardNextButtonTimer && nextBtn) nextBtn.disabled = nextDisabled; // Không còn timer
+            if (practiceType !== "off") { // If in practice mode
+                 // Next button is disabled if answer not checked OR if it's the last card and answer not checked
+                nextDisabled = nextDisabled || (!currentAnswerChecked && window.currentData.length > 0) || (window.currentData.length > 0 && window.currentIndex >= window.currentData.length - 1 && !currentAnswerChecked);
+            }
+            // learningCardNextButtonTimer removed from condition
             if (nextBtn) nextBtn.disabled = nextDisabled;
             if (flipBtn) flipBtn.disabled = window.currentData.length === 0 || (practiceType !== "off");
         }
     }
 
-    function displayMultipleChoiceOptions() {
+    function displayMultipleChoiceOptions() { // Logic for SRS calls removed
         multipleChoiceOptionsContainer.innerHTML = '';
         const sourceCard = isSingleCardPracticeMode ? originalCurrentData[originalCurrentIndex] : window.currentData[window.currentIndex];
 
@@ -2204,7 +2339,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    function checkMultipleChoiceAnswer(selectedAnswer, correctAnswer, buttonElement) {
+    function checkMultipleChoiceAnswer(selectedAnswer, correctAnswer, buttonElement) { // SRS call removed
         currentAnswerChecked = true;
         feedbackMessage.classList.remove('hidden');
         const allChoiceButtons = multipleChoiceOptionsContainer.querySelectorAll('.choice-button');
@@ -2230,11 +2365,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         flashcardElement.classList.remove('practice-mode-front-only');
         flashcardElement.classList.add('flipped');
 
-        // processSrsRatingWrapper(isCorrect ? 'easy' : 'again'); // Không gọi SRS nữa
+        // processSrsRatingWrapper removed
         updateCardInfo();
     }
 
-    function switchToInputMode(mode) {
+    function switchToInputMode(mode) { // Remains the same
         currentInputMode = mode;
         clearAllFormErrors();
         if (mode === 'json') {
@@ -2272,7 +2407,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    async function processAndSaveJsonCards() {
+    async function processAndSaveJsonCards() { // SRS fields removed from cardDataToSave
         const userId = getCurrentUserId();
         if (!userId) {
             jsonImportErrorMessage.textContent = "Vui lòng đăng nhập để tạo thẻ từ JSON.";
@@ -2335,7 +2470,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 continue;
             }
 
-            const cardDataToSave = { // Loại bỏ các trường SRS/Favorite
+            const cardDataToSave = {
                 pronunciation: cardJson.pronunciation || '',
                 meanings: cardJson.meanings.map(m => ({
                     id: m.id || generateUniqueId('m_json_'),
@@ -2353,8 +2488,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 category: cardJson.category,
                 deckId: selectedDeckId,
                 isUserCard: true,
+                isFavorite: cardJson.isFavorite || false,
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp()
+                // SRS fields removed
             };
 
             if (cardJson.category === 'phrasalVerbs') {
@@ -2400,7 +2537,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    function openCopyToDeckModal() {
+    function openCopyToDeckModal() { // Remains the same
         const currentCard = window.currentData[window.currentIndex];
         if (!currentCard || currentCard.isUserCard) {
             console.warn("Không thể sao chép thẻ này (không phải thẻ web hoặc không có thẻ).");
@@ -2425,13 +2562,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         copyToDeckModal.querySelector('.modal-content').classList.add('scale-100');
     }
 
-    function closeCopyToDeckModal() {
+    function closeCopyToDeckModal() { // Remains the same
         copyToDeckModal.classList.add('opacity-0');
         copyToDeckModal.querySelector('.modal-content').classList.add('scale-95');
         setTimeout(() => copyToDeckModal.classList.add('hidden'), 250);
     }
 
-    async function handleConfirmCopyToDeck() {
+    async function handleConfirmCopyToDeck() { // SRS fields removed from cardToCopy
         const currentCard = window.currentData[window.currentIndex];
         if (!currentCard || currentCard.isUserCard) {
             copyToDeckErrorMessage.textContent = "Thẻ hiện tại không phải là thẻ web để sao chép.";
@@ -2477,22 +2614,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        const cardToCopy = { ...currentCard }; // Sao chép toàn bộ dữ liệu thẻ web
-        delete cardToCopy.id; // Xóa ID cũ của thẻ web
+        const cardToCopy = { ...currentCard };
+        delete cardToCopy.id;
         cardToCopy.isUserCard = true;
         cardToCopy.deckId = targetDeckId;
-        // Loại bỏ các trường SRS và isFavorite khi sao chép
-        // delete cardToCopy.status;
-        // delete cardToCopy.lastReviewed;
-        // delete cardToCopy.reviewCount;
-        // delete cardToCopy.nextReviewDate;
-        // delete cardToCopy.interval;
-        // delete cardToCopy.easeFactor;
-        // delete cardToCopy.repetitions;
-        // delete cardToCopy.isSuspended;
-        // delete cardToCopy.isFavorite;
+        cardToCopy.isFavorite = currentCard.isFavorite || false;
+        cardToCopy.videoUrl = currentCard.videoUrl || null;
         cardToCopy.createdAt = serverTimestamp();
         cardToCopy.updatedAt = serverTimestamp();
+        // SRS fields removed
 
         delete cardToCopy.webCardGlobalId;
 
@@ -2522,7 +2652,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    async function openBottomSheet(cardItem, viewType = 'default', subView = 'youtube_custom') {
+    async function openBottomSheet(cardItem, viewType = 'default', subView = 'youtube_custom') { // SRS info removed from bottom sheet
         if (!cardItem || !bottomSheetContent || !bottomSheetTitle || !bottomSheetOverlay || !bottomSheet) return;
 
         let hasActions = false;
@@ -2540,14 +2670,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (viewType === 'default') {
             bottomSheetTitle.textContent = `Tùy chọn cho: ${cardTerm.length > 20 ? cardTerm.substring(0,17) + '...' : cardTerm}`;
 
-            // Loại bỏ nút Yêu thích
-            // if (loggedInUserId) { ... }
+            if (loggedInUserId) {
+                const favoriteBtnEl = document.createElement('button');
+                favoriteBtnEl.className = 'favorite-btn';
+                updateFavoriteButtonUI(favoriteBtnEl, cardItem.isFavorite || false);
+                favoriteBtnEl.onclick = async () => {
+                    await toggleFavoriteStatus(cardItem, favoriteBtnEl);
+                };
+                bottomSheetContent.appendChild(favoriteBtnEl);
+                hasActions = true;
+            }
 
-            // Loại bỏ hiển thị thông tin SRS
-            // if (loggedInUserId && (cardItem.isUserCard || (cardItem.nextReviewDate || (cardItem.repetitions && cardItem.repetitions > 0) ))) { ... }
+            // SRS Info Div removed
 
-
-             if (!cardItem.isUserCard && loggedInUserId) {
+            if (!cardItem.isUserCard && loggedInUserId) {
                 const copyBtnEl = document.createElement('button');
                 copyBtnEl.innerHTML = `<i class="fas fa-copy w-5 mr-3 text-sky-500"></i> Sao chép vào Thẻ của Tôi`;
                 copyBtnEl.onclick = () => { openCopyToDeckModal(); closeBottomSheet(); };
@@ -2561,8 +2697,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 bottomSheetContent.appendChild(editBtnEl);
                 hasActions = true;
             }
-            // Loại bỏ nút Đặt lại tiến độ học và Tạm ngưng/Tiếp tục Ôn tập
-            // if (loggedInUserId && (cardItem.isUserCard || (cardItem.nextReviewDate || (cardItem.repetitions && cardItem.repetitions > 0) ))) { ... }
+            // Reset SRS Button and Suspend Button removed
 
             if (cardItem.isUserCard && loggedInUserId) {
                 const deleteBtnEl = document.createElement('button');
@@ -2573,7 +2708,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 hasActions = true;
             }
 
-        } else if (viewType === 'lecture') {
+        } else if (viewType === 'lecture') { // Remains the same
             bottomSheet.classList.add('bottom-sheet-lecture-mode');
 
             const cardLectureId = generateCardLectureId(cardItem);
@@ -2652,7 +2787,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     bottomSheetContent.innerHTML = '<p class="text-red-500 dark:text-red-400 p-4 text-center">Lỗi tải bài giảng. Vui lòng thử lại.</p>';
                 });
             hasActions = true;
-        } else if (viewType === 'media') {
+        } else if (viewType === 'media') { // Remains the same
             bottomSheet.classList.add('bottom-sheet-media-mode');
             bottomSheetTitle.textContent = `Nghe/Xem: ${cardTerm.length > 20 ? cardTerm.substring(0,17) + '...' : cardTerm}`;
 
@@ -2667,7 +2802,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             setActiveMediaTab('youtube_custom', cardItem);
             hasActions = true;
-        } else if (viewType === 'practice_options') {
+        } else if (viewType === 'practice_options') { // Remains the same
              bottomSheetTitle.textContent = `Luyện tập: ${cardTerm.length > 20 ? cardTerm.substring(0,17) + '...' : cardTerm}`;
              const practiceMeaningBtn = document.createElement('button');
              practiceMeaningBtn.innerHTML = `<i class="fas fa-list-alt w-5 mr-3 text-purple-500"></i> Luyện Nghĩa (Thẻ này)`;
@@ -2702,7 +2837,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    function setActiveMediaTab(tabName, cardItem) {
+    function setActiveMediaTab(tabName, cardItem) { // Remains the same
         const youtubeContentDiv = document.getElementById('youtube-tab-content');
         let cardTerm = cardItem.word || cardItem.phrasalVerb || cardItem.collocation || cardItem.idiom || "";
 
@@ -2720,7 +2855,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         const iframeContainer = document.createElement('div');
                         iframeContainer.className = 'video-iframe-container w-full';
                         const iframe = document.createElement('iframe');
-                        iframe.src = `https://www.youtube.com/embed/$${videoId}`;
+                        iframe.src = `https://www.youtube.com/embed/${videoId}`;
                         iframe.title = "YouTube video player";
                         iframe.frameBorder = "0";
                         iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
@@ -2746,7 +2881,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                      const youtubeSearchTerm = `học từ ${baseSearchTerm}`;
                      searchButton.innerHTML = `<i class="fab fa-youtube mr-2"></i> Tìm trên YouTube với từ khóa "${baseSearchTerm}"`;
                      searchButton.onclick = () => {
-                         window.open(`https://www.youtube.com/results?search_query=$${encodeURIComponent(youtubeSearchTerm)}`, '_blank');
+                         window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(youtubeSearchTerm)}`, '_blank');
                      };
                      searchButtonContainer.appendChild(searchButton);
                      youtubeContentDiv.appendChild(searchButtonContainer);
@@ -2757,7 +2892,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
 
-    function closeBottomSheet() {
+    function closeBottomSheet() { // Remains the same
         if (!bottomSheet || !bottomSheetOverlay) return;
         bottomSheet.classList.remove('active', 'bottom-sheet-video-mode', 'bottom-sheet-notes-mode', 'bottom-sheet-media-mode', 'bottom-sheet-lecture-mode');
         bottomSheetOverlay.classList.remove('active');
@@ -2776,14 +2911,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         }, 300);
     }
 
-    function extractYouTubeVideoId(url) {
+    function extractYouTubeVideoId(url) { // Remains the same
         if (!url) return null;
         const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
         const match = url.match(regExp);
         return (match && match[2] && match[2].length === 11) ? match[2] : null;
     }
 
-    function startSingleCardPractice(cardItem, practiceMode) {
+    function startSingleCardPractice(cardItem, practiceMode) { // Remains the same
         if (!cardItem) return;
         console.log(`Starting single card practice for: ${cardItem.word || cardItem.phrasalVerb || cardItem.collocation || cardItem.idiom}, Mode: ${practiceMode}`);
 
@@ -2797,10 +2932,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         practiceType = practiceMode;
 
         updateFlashcard();
-        showToast(`Bắt đầu luyện tập thẻ: ${cardItem.word || cardItem.phrasalVerb || cardItem.collocation || cardItem.idiom}`, 3000);
+        showToast(`Bắt đầu luyện tập thẻ: ${cardItem.word || cardItem.phrasalVerb || cardItem.collocation || cardItem.idiom}`, 3000, 'success');
     }
 
-    function exitSingleCardPractice() {
+    function exitSingleCardPractice() { // Remains the same
         if (!isSingleCardPracticeMode) return;
         console.log("Exiting single card practice mode.");
 
@@ -2812,11 +2947,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (practiceTypeSelect) practiceTypeSelect.value = 'off';
 
         updateFlashcard();
-        showToast("Đã thoát chế độ luyện tập thẻ.", 2000);
+        showToast("Đã thoát chế độ luyện tập thẻ.", 2000, 'info');
     }
 
 
-    function handleTouchStart(event) {
+    function handleTouchStart(event) { // Remains the same
         if (flashcardElement.classList.contains('flipped') || practiceType !== "off" || window.currentData.length === 0) {
             return;
         }
@@ -2826,7 +2961,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         touchEndY = touchStartY;
     }
 
-    function handleTouchMove(event) {
+    function handleTouchMove(event) { // Remains the same
         if (flashcardElement.classList.contains('flipped') || practiceType !== "off" || window.currentData.length === 0) {
             return;
         }
@@ -2834,16 +2969,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         touchEndY = event.touches[0].clientY;
     }
 
-    function handleTouchEnd(event) {
+    function handleTouchEnd(event) { // Remains the same
         if (flashcardElement.classList.contains('flipped') || practiceType !== "off" || window.currentData.length === 0) {
             return;
         }
 
         const horizontalDiff = touchEndX - touchStartX;
-        // const verticalDiff = touchEndY - touchStartY; // Không dùng đến
+        const verticalDiff = touchEndY - touchStartY;
 
 
-        if (Math.abs(horizontalDiff) > Math.abs(touchEndY - touchStartY) && Math.abs(horizontalDiff) > swipeThreshold) {
+        if (Math.abs(horizontalDiff) > Math.abs(verticalDiff) && Math.abs(horizontalDiff) > swipeThreshold) {
             event.preventDefault();
             if (horizontalDiff > 0) {
                 if (prevBtn && !prevBtn.disabled) {
@@ -2864,7 +2999,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 
-    function setupEventListeners() {
+    function setupEventListeners() { // SRS button event listeners removed
         if(hamburgerMenuBtn) hamburgerMenuBtn.addEventListener('click', openSidebar);
         if(closeSidebarBtn) closeSidebarBtn.addEventListener('click', closeSidebar);
         if(sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
@@ -3044,28 +3179,28 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
         if(practiceTypeSelect) practiceTypeSelect.addEventListener('change', (e)=>{
-            // clearLearningTimer(); // Không còn timer
+            // clearLearningTimer(); // Removed
             practiceType=e.target.value;
-            const cat=categorySelect.value;const st=getCategoryState(currentDatasetSource,cat);searchInput.value='';
+            const cat=categorySelect.value;
+            const st=getCategoryState(currentDatasetSource,cat);
+            searchInput.value='';
             if(cat==='phrasalVerbs' || cat === 'collocations' || cat === 'idioms'){
                 if (cat === 'phrasalVerbs' || cat === 'collocations') {
                     st.baseVerb='all';if(baseVerbSelect)baseVerbSelect.value='all';
                 }
                 st.tag='all';if(tagSelect)tagSelect.value='all';
             } const userId = getCurrentUserId(); if(currentDatasetSource==='user' && userId){st.deckId='all_user_cards';if(userDeckSelect)userDeckSelect.value='all_user_cards';}
-            
-            st.filterCardDisplay = defaultCategoryState.filterCardDisplay; // Sử dụng filterCardDisplay
-            if(filterCardStatusSelect) filterCardStatusSelect.value = defaultCategoryState.filterCardDisplay;
+            st.filterMarked = defaultCategoryState.filterMarked; // Reset to default non-SRS filter
+            if(filterCardStatusSelect) filterCardStatusSelect.value = defaultCategoryState.filterMarked;
             st.currentIndex=0;applyAllFilters();closeSidebar();});
         if(categorySelect) categorySelect.addEventListener('change', async (e)=>{
-            // clearLearningTimer(); // Không còn timer
+            // clearLearningTimer(); // Removed
             const selCat=e.target.value;
             if(practiceTypeSelect)practiceTypeSelect.value="off";
             practiceType="off";
             searchInput.value='';
-            
             const stateForNewCategory = getCategoryState(currentDatasetSource, selCat);
-            if(filterCardStatusSelect) filterCardStatusSelect.value = stateForNewCategory.filterCardDisplay; // Sử dụng filterCardDisplay
+            if(filterCardStatusSelect) filterCardStatusSelect.value = stateForNewCategory.filterMarked;
 
             await loadVocabularyData(selCat);
             window.updateMainHeaderTitle();
@@ -3104,11 +3239,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         if(nextBtn) nextBtn.addEventListener('click', ()=>{
             window.speechSynthesis.cancel();
             if(nextBtn.disabled)return;
-            // clearLearningTimer(); // Không còn timer
-            if(window.currentIndex<window.currentData.length-1){window.currentIndex++;getCategoryState(currentDatasetSource,categorySelect.value).currentIndex=window.currentIndex;saveAppState();window.updateFlashcard();}else if(practiceType!=="off"&&currentAnswerChecked&&window.currentIndex>=window.currentData.length-1)applyAllFilters();});
+            // clearLearningTimer(); // Removed
+            if(window.currentIndex<window.currentData.length-1){
+                window.currentIndex++;
+                getCategoryState(currentDatasetSource,categorySelect.value).currentIndex=window.currentIndex;
+                saveAppState();
+                window.updateFlashcard();
+            } else if(practiceType!=="off"&&currentAnswerChecked&&window.currentIndex>=window.currentData.length-1){
+                // If in practice mode, answer checked, and it's the last card, re-apply filters (might show new set or empty)
+                applyAllFilters();
+            }
+        });
         if(prevBtn) prevBtn.addEventListener('click', ()=>{
             window.speechSynthesis.cancel();
-            // clearLearningTimer(); // Không còn timer
+            // clearLearningTimer(); // Removed
             if(window.currentIndex>0){window.currentIndex--;getCategoryState(currentDatasetSource,categorySelect.value).currentIndex=window.currentIndex;saveAppState();window.updateFlashcard();}});
         if(speakerBtn) speakerBtn.addEventListener('click', (e)=>{
             e.stopPropagation();
@@ -3116,16 +3260,30 @@ document.addEventListener('DOMContentLoaded', async () => {
             const txt=wordDisplay.dataset.ttsText;
             if(txt&&!speakerBtn.disabled)speakText(txt,currentWordSpansMeta);});
 
-        // Loại bỏ event listener cho các nút SRS
-        // if(btnSrsAgain) btnSrsAgain.addEventListener('click', () => processSrsRatingWrapper('again'));
-        // ... và các nút SRS khác
 
-        function checkTypingAnswer(){if(window.currentData.length===0||!currentCorrectAnswerForPractice)return;currentAnswerChecked=true;feedbackMessage.classList.remove('hidden');typingInput.disabled=true;submitTypingAnswerBtn.disabled=true;const uA=typingInput.value.trim().toLowerCase();const cA=currentCorrectAnswerForPractice.trim().toLowerCase();const iC=uA===cA;if(iC){feedbackMessage.textContent='Đúng!';feedbackMessage.className='mt-3 p-3 rounded-md w-full text-center font-semibold bg-green-100 text-green-700 border border-green-300';}else{feedbackMessage.textContent=`Sai! Đáp án đúng: ${currentCorrectAnswerForPractice}`;feedbackMessage.className='mt-3 p-3 rounded-md w-full text-center font-semibold bg-red-100 text-red-700 border border-red-300';}flashcardElement.classList.remove('practice-mode-front-only');flashcardElement.classList.add('flipped');
-        // const i=window.currentData[window.currentIndex]; // Không còn dùng để lấy ID cho SRS
-        // const iCV=i.category;
-        // const id=getCardIdentifier(i,iCV);
-        // if(id)processSrsRatingWrapper(iC?'easy':'again'); // Không gọi SRS
-        updateCardInfo();}
+        // SRS Button event listeners removed
+
+        function checkTypingAnswer(){ // SRS call removed
+            if(window.currentData.length===0||!currentCorrectAnswerForPractice)return;
+            currentAnswerChecked=true;
+            feedbackMessage.classList.remove('hidden');
+            typingInput.disabled=true;
+            submitTypingAnswerBtn.disabled=true;
+            const uA=typingInput.value.trim().toLowerCase();
+            const cA=currentCorrectAnswerForPractice.trim().toLowerCase();
+            const iC=uA===cA;
+            if(iC){
+                feedbackMessage.textContent='Đúng!';
+                feedbackMessage.className='mt-3 p-3 rounded-md w-full text-center font-semibold bg-green-100 text-green-700 border border-green-300';
+            } else {
+                feedbackMessage.textContent=`Sai! Đáp án đúng: ${currentCorrectAnswerForPractice}`;
+                feedbackMessage.className='mt-3 p-3 rounded-md w-full text-center font-semibold bg-red-100 text-red-700 border border-red-300';
+            }
+            flashcardElement.classList.remove('practice-mode-front-only');
+            flashcardElement.classList.add('flipped');
+            // processSrsRatingWrapper removed
+            updateCardInfo();
+        }
 
         if(submitTypingAnswerBtn) submitTypingAnswerBtn.addEventListener('click', checkTypingAnswer);
         if(typingInput) typingInput.addEventListener('keypress', (e)=>{if(e.key==='Enter'&&practiceType==='typing_practice'&&!submitTypingAnswerBtn.disabled)checkTypingAnswer();});
@@ -3152,14 +3310,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    async function setupInitialCategoryAndSource() {
+    async function setupInitialCategoryAndSource() { // SRS related fields removed from appState logic
 
         await loadAppState();
-        
         if (filterCardStatusSelect && appState.categoryStates[`${currentDatasetSource}_${categorySelect.value}`]) {
-             filterCardStatusSelect.value = appState.categoryStates[`${currentDatasetSource}_${categorySelect.value}`].filterCardDisplay || defaultCategoryState.filterCardDisplay;
+             filterCardStatusSelect.value = appState.categoryStates[`${currentDatasetSource}_${categorySelect.value}`].filterMarked || defaultCategoryState.filterMarked;
         } else if (filterCardStatusSelect) {
-            filterCardStatusSelect.value = defaultCategoryState.filterCardDisplay;
+            filterCardStatusSelect.value = defaultCategoryState.filterMarked; // Default to 'all_cards'
         }
 
         renderRecentlyViewedList();
@@ -3170,12 +3327,43 @@ document.addEventListener('DOMContentLoaded', async () => {
         if(cardSourceSelect) cardSourceSelect.value = currentDatasetSource;
         if(categorySelect) categorySelect.value = appState.lastSelectedCategory || 'phrasalVerbs';
 
-        
         const currentCategoryState = getCategoryState(currentDatasetSource, categorySelect.value);
-        if(filterCardStatusSelect) filterCardStatusSelect.value = currentCategoryState.filterCardDisplay;
+        if(filterCardStatusSelect) filterCardStatusSelect.value = currentCategoryState.filterMarked;
 
 
         await loadVocabularyData(categorySelect.value);
     }
 
 }); // END DOMContentLoaded
+```
+
+Các thay đổi chính trong `script.js`:
+
+1.  **Xóa Import và Khởi tạo SRS:**
+    * Đã xóa `import { initializeSrsModule, processSrsRatingWrapper } from './srs.js';`.
+    * Đã xóa lời gọi `initializeSrsModule(...)`.
+2.  **Xóa Biến DOM và Trạng thái SRS:**
+    * Đã xóa các biến DOM cho nút SRS (`btnSrsAgain`, `btnSrsHard`, `btnSrsGood`, `btnSrsEasy`) và toast SRS (`srsFeedbackToastEl`).
+    * Đã xóa các biến trạng thái liên quan đến SRS như `learningCardNextButtonTimer`, `learningCardCountdownInterval`.
+3.  **Xóa Logic SRS trong Hàm:**
+    * **`loadAppState` và `saveAppState`:** Loại bỏ việc lưu/tải các trường SRS (`status`, `lastReviewed`, `nextReviewDate`, `interval`, `easeFactor`, `repetitions`, `isSuspended`) khỏi `appState` và `categoryStates`. `filterMarked` trong `defaultCategoryState` được đặt thành `'all_cards'`.
+    * **`getCardStatus`:** Hàm này giờ chỉ trả về trạng thái `isFavorite` của thẻ.
+    * **`updateStatusButtonsUI`:** Hàm này đã bị xóa vì không còn nút SRS.
+    * **`handleSaveCard`:** Khi lưu thẻ, không còn lưu các trường dữ liệu SRS.
+    * **`loadUserCards` và `loadVocabularyData`:** Không còn tải hoặc gán các trường dữ liệu SRS cho thẻ.
+    * **`applyAllFilters`:**
+        * Loại bỏ logic lọc thẻ dựa trên trạng thái SRS (`review_today`, `new`, `learning`, `learned`, `all_active`, `all_visible` liên quan đến `isSuspended`).
+        * Chỉ giữ lại lọc theo "Tất cả thẻ" (`all_cards`) và "Thẻ yêu thích" (`favorites`).
+    * **`updateFlashcard`:**
+        * Xóa logic liên quan đến `startLearningTimer`.
+        * Xóa logic hiển thị thông tin SRS trong bottom sheet.
+    * **`checkMultipleChoiceAnswer` và `checkTypingAnswer`:** Xóa lời gọi đến `processSrsRatingWrapper`.
+    * **`openBottomSheet`:** Xóa phần hiển thị thông tin SRS và các nút "Đặt lại Tiến độ Học", "Tạm ngưng/Tiếp tục Ôn tập".
+4.  **Xóa Event Listeners cho Nút SRS:** Đã xóa các event listener cho các nút SRS.
+5.  **Toast Notification:** Hàm `showToast` được giữ lại nhưng sẽ được dùng cho các thông báo chung khác, không còn dành riêng cho SRS. Tôi đã điều chỉnh nó để tạo toast một cách linh động hơn thay vì dựa vào một phần tử cố định.
+
+**Lưu ý quan trọng:**
+* Tệp `srs.js` bây giờ không còn được sử dụng. Bạn có thể xóa nó khỏi dự án.
+* Tệp `firestoreService.js` cũng sẽ cần được cập nhật để loại bỏ việc lưu và tải các trường dữ liệu SRS. Chúng ta sẽ làm điều đó ở bước tiếp theo.
+
+Bạn vui lòng xem lại các thay đổi trong `script.js` này. Sau đó, chúng ta sẽ chuyển sang `firestoreService.j
