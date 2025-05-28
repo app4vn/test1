@@ -1,7 +1,7 @@
 // Firebase Firestore imports
 import {
   getFirestore, collection, addDoc, getDocs, doc, setDoc, updateDoc, deleteDoc, query, where, orderBy, serverTimestamp, getDoc, Timestamp
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 let dbInstance; // Sẽ được truyền vào từ script.js
 
@@ -36,13 +36,13 @@ export async function createDeckInFirestore(userId, deckName) {
     const newDeckData = {
         name: deckName.trim(),
         createdAt: serverTimestamp(),
-        owner: userId 
+        owner: userId
     };
     try {
         const decksCollectionRef = collection(dbInstance, 'users', userId, 'decks');
         const docRef = await addDoc(decksCollectionRef, newDeckData);
         console.log("FirestoreService: Deck created with ID:", docRef.id);
-        return { id: docRef.id, ...newDeckData, createdAt: Date.now() }; 
+        return { id: docRef.id, ...newDeckData, createdAt: Date.now() };
     } catch (error) {
         console.error("FirestoreService: Error creating deck:", error);
         alert("Đã xảy ra lỗi khi tạo bộ thẻ. Vui lòng thử lại.");
@@ -69,43 +69,44 @@ export async function updateDeckNameInFirestore(userId, deckId, newName) {
 
 // --- Card Operations ---
 export async function loadUserCardsFromFirestore(userId, deckId) {
-    if (!userId || !dbInstance || (deckId !== null && !deckId)) { 
+    if (!userId || !dbInstance || (deckId !== null && !deckId)) {
         console.error("FirestoreService: Missing data for loadUserCardsFromDeck (userId or dbInstance missing, or invalid deckId if not null)");
         return [];
     }
 
     let cardsCollectionRef;
     if (deckId === null) {
-        // This case is for unassigned cards. If you decide to store them directly under a user's 'cards' collection:
-        // cardsCollectionRef = collection(dbInstance, 'users', userId, 'cards');
-        // For now, assuming unassigned cards are filtered client-side or not directly loaded this way.
-        console.warn("FirestoreService: loadUserCardsFromFirestore called with deckId=null. This implies loading unassigned cards, which requires a specific query or client-side filtering based on cards without a deckId if all cards are in one global collection per user, or a dedicated 'unassigned' collection.");
-        // If cards are always under a deck, and 'unassigned' is a virtual concept, this function might not be the right place to load them directly.
-        // Let's assume for now that if deckId is null, we are trying to get cards that don't have a deckId field,
-        // or this function is called specifically for a deck (not for 'all_user_cards' or 'unassigned_cards' which are handled in script.js by iterating).
-        // For simplicity, if deckId is truly null (meaning a specific "unassigned" collection, which is not the current structure), return empty.
-        // The current structure is users/{userId}/decks/{deckId}/cards
-        // So, a null deckId here means an error or a different design path.
-        // The main script.js handles 'all_user_cards' and 'unassigned_cards' by iterating or filtering.
-        // This function is primarily for loading cards from a *specific* deck's subcollection.
-        return []; 
+        console.warn("FirestoreService: loadUserCardsFromFirestore called with deckId=null. This implies loading unassigned cards.");
+        return [];
     } else {
         console.log(`FirestoreService: Loading cards for deck ID: ${deckId} for user ID: ${userId}`);
         cardsCollectionRef = collection(dbInstance, 'users', userId, 'decks', deckId, 'cards');
     }
 
-    const qCards = query(cardsCollectionRef, orderBy('createdAt', 'asc'));
+    // Không còn orderBy theo các trường SRS nữa, có thể orderBy theo createdAt hoặc term (word/phrase)
+    const qCards = query(cardsCollectionRef, orderBy('createdAt', 'asc')); // hoặc orderBy theo term nếu muốn
     try {
         const querySnapshot = await getDocs(qCards);
         return querySnapshot.docs.map(docSnap => {
             const data = docSnap.data();
+            // Loại bỏ các trường SRS và isFavorite khi tải thẻ
+            const {
+                // status, // Loại bỏ
+                // lastReviewed, // Loại bỏ
+                // reviewCount, // Loại bỏ
+                // nextReviewDate, // Loại bỏ
+                // interval, // Loại bỏ
+                // easeFactor, // Loại bỏ
+                // repetitions, // Loại bỏ
+                // isSuspended, // Loại bỏ
+                // isFavorite, // Loại bỏ
+                ...restOfData // Giữ lại các trường còn lại
+            } = data;
             return {
                 id: docSnap.id,
-                ...data,
+                ...restOfData,
                 isUserCard: true,
-                isFavorite: data.isFavorite || false, // Lấy trạng thái yêu thích, mặc định là false
-                lastReviewed: data.lastReviewed?.toDate ? data.lastReviewed.toDate().getTime() : (data.lastReviewed || null),
-                nextReviewDate: data.nextReviewDate?.toDate ? data.nextReviewDate.toDate().getTime() : null,
+                // Chuyển đổi Timestamp nếu có
                 createdAt: data.createdAt?.toDate ? data.createdAt.toDate().getTime() : (data.createdAt || null),
                 updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().getTime() : (data.updatedAt || null)
             };
@@ -124,30 +125,37 @@ export async function saveCardToFirestore(userId, deckId, cardData, cardId = nul
     }
     if (!deckId) {
         console.error("FirestoreService: deckId is required to save a user card.");
-        // alert("Lỗi: Không thể lưu thẻ người dùng mà không có thông tin bộ thẻ."); // Consider if alert is needed here or handled by caller
         return null;
     }
 
     let collectionRefPath = collection(dbInstance, 'users', userId, 'decks', deckId, 'cards');
-    
-    // Đảm bảo isFavorite có giá trị boolean
-    const dataToSave = { ...cardData };
-    if (typeof dataToSave.isFavorite === 'undefined') {
-        dataToSave.isFavorite = false; // Mặc định là false nếu không được cung cấp
-    }
+
+    // Loại bỏ các trường SRS và isFavorite trước khi lưu
+    const {
+        // status, // Loại bỏ
+        // lastReviewed, // Loại bỏ
+        // reviewCount, // Loại bỏ
+        // nextReviewDate, // Loại bỏ
+        // interval, // Loại bỏ
+        // easeFactor, // Loại bỏ
+        // repetitions, // Loại bỏ
+        // isSuspended, // Loại bỏ
+        // isFavorite, // Loại bỏ
+        ...dataToSave // Giữ lại các trường còn lại
+    } = cardData;
 
 
     try {
         if (cardId) { // Update existing card
             dataToSave.updatedAt = serverTimestamp();
-            const cardRef = doc(collectionRefPath, cardId); 
-            await updateDoc(cardRef, dataToSave); // Sử dụng dataToSave đã chuẩn hóa
+            const cardRef = doc(collectionRefPath, cardId);
+            await updateDoc(cardRef, dataToSave);
             console.log("FirestoreService: Card updated with ID:", cardId, "in deck:", deckId);
             return cardId;
         } else { // Add new card
             dataToSave.createdAt = serverTimestamp();
-            dataToSave.updatedAt = serverTimestamp(); // Cũng nên có updatedAt khi tạo mới
-            const docRef = await addDoc(collectionRefPath, dataToSave); // Sử dụng dataToSave đã chuẩn hóa
+            dataToSave.updatedAt = serverTimestamp();
+            const docRef = await addDoc(collectionRefPath, dataToSave);
             console.log("FirestoreService: Card added with ID:", docRef.id, "to deck:", deckId);
             return docRef.id;
         }
@@ -176,31 +184,48 @@ export async function deleteCardFromFirestore(userId, deckId, cardId) {
 }
 
 // --- Web Card Status Operations ---
+// Chức năng này không còn ý nghĩa nhiều khi bỏ SRS và Favorite cho web card.
+// Có thể giữ lại để lưu các thông tin khác nếu cần, hoặc loại bỏ hoàn toàn.
+// Hiện tại, tôi sẽ comment out phần lớn để đơn giản hóa.
 export async function getWebCardStatusFromFirestore(userId, webCardGlobalId) {
     if (!userId || !dbInstance || !webCardGlobalId) {
-        return null;
+        return null; // Không còn trả về { isFavorite: false } vì isFavorite đã bị loại bỏ
     }
     const statusRef = doc(dbInstance, 'users', userId, 'webCardStatuses', webCardGlobalId);
     try {
         const docSnap = await getDoc(statusRef);
         if (docSnap.exists()) {
             const data = docSnap.data();
+            // Loại bỏ các trường SRS và isFavorite
+            const {
+                // status, // Loại bỏ
+                // lastReviewed, // Loại bỏ
+                // reviewCount, // Loại bỏ
+                // nextReviewDate, // Loại bỏ
+                // interval, // Loại bỏ
+                // easeFactor, // Loại bỏ
+                // repetitions, // Loại bỏ
+                // isSuspended, // Loại bỏ
+                // isFavorite, // Loại bỏ
+                ...restOfData
+            } = data;
             return {
-                ...data,
-                isFavorite: data.isFavorite || false, // Lấy trạng thái yêu thích, mặc định là false
-                lastReviewed: data.lastReviewed?.toDate ? data.lastReviewed.toDate().getTime() : (data.lastReviewed || null),
-                nextReviewDate: data.nextReviewDate?.toDate ? data.nextReviewDate.toDate().getTime() : null,
+                ...restOfData
+                // Chuyển đổi Timestamp nếu có cho các trường còn lại (nếu có)
             };
         }
-        return { isFavorite: false }; // Trả về trạng thái mặc định nếu document không tồn tại
+        return null; // Trả về null nếu document không tồn tại
     } catch (error) {
         console.error("FirestoreService: Error fetching web card status for", webCardGlobalId, error);
-        return { isFavorite: false }; // Trả về trạng thái mặc định khi có lỗi
+        return null;
     }
 }
 
 export async function updateWebCardStatusInFirestore(userId, webCardGlobalId, cardData, srsDataToUpdate) {
-    if (!userId || !dbInstance || !webCardGlobalId || !cardData || !srsDataToUpdate) {
+    // Vì SRS và Favorite đã bị loại bỏ, hàm này có thể không cần thiết nữa
+    // hoặc chỉ lưu các thông tin rất cơ bản nếu người dùng tương tác với thẻ web.
+    console.warn("FirestoreService: updateWebCardStatusInFirestore called, but SRS and Favorite functionalities are removed. Review if this function is still needed.");
+    if (!userId || !dbInstance || !webCardGlobalId || !cardData /*|| !srsDataToUpdate - srsDataToUpdate giờ không còn nhiều ý nghĩa*/) {
         console.error("FirestoreService: Missing data for updateWebCardStatusInFirestore. Aborting.");
         return false;
     }
@@ -217,29 +242,24 @@ export async function updateWebCardStatusInFirestore(userId, webCardGlobalId, ca
         return false;
     }
 
+    // Dữ liệu lưu lại cho web card status giờ rất hạn chế
     const dataToSet = {
         originalCategory: cardData.category,
         originalWordOrPhrase: originalTerm,
-        ...srsDataToUpdate // srsDataToUpdate có thể chứa isFavorite
+        // ...srsDataToUpdate, // Loại bỏ các trường SRS
+        updatedAt: serverTimestamp() // Có thể vẫn muốn lưu thời điểm cập nhật cuối
     };
-    
-    // Đảm bảo isFavorite có giá trị boolean nếu được cung cấp
-    if (typeof dataToSet.isFavorite === 'undefined' && srsDataToUpdate.hasOwnProperty('isFavorite')) {
-        // Nếu isFavorite được truyền vào nhưng là undefined, đặt nó thành false
-        // Hoặc nếu bạn muốn giữ nguyên giá trị cũ nếu isFavorite không được truyền, logic sẽ khác
-    } else if (typeof dataToSet.isFavorite !== 'boolean' && dataToSet.hasOwnProperty('isFavorite')) {
-        dataToSet.isFavorite = !!dataToSet.isFavorite; // Chuyển thành boolean
-    }
 
+    // Không còn trường isFavorite để xử lý ở đây
 
-    console.log("[FirestoreService] updateWebCardStatusInFirestore - Data to set in Firestore:", JSON.parse(JSON.stringify(dataToSet)));
+    console.log("[FirestoreService] updateWebCardStatusInFirestore - Data to set in Firestore (minimal due to SRS/Fav removal):", JSON.parse(JSON.stringify(dataToSet)));
 
     try {
         await setDoc(statusRef, dataToSet, { merge: true });
-        console.log(`FirestoreService: Web card status updated for ${webCardGlobalId}:`, dataToSet);
+        console.log(`FirestoreService: Web card status (minimal) updated for ${webCardGlobalId}:`, dataToSet);
         return true;
     } catch (error) {
-        console.error("FirestoreService: Error updating web card status in setDoc:", error, "Data attempted:", dataToSet);
+        console.error("FirestoreService: Error updating web card status (minimal) in setDoc:", error, "Data attempted:", dataToSet);
         return false;
     }
 }
@@ -256,7 +276,16 @@ export async function loadAppStateFromFirestore(userId) {
         const docSnap = await getDoc(appStateRef);
         if (docSnap.exists()) {
             console.log("FirestoreService: AppState loaded from Firestore.");
-            return docSnap.data();
+            // Cần đảm bảo không load các trường SRS/Favorite từ appState cũ nếu có
+            const appState = docSnap.data();
+            if (appState.categoryStates) {
+                for (const key in appState.categoryStates) {
+                    // delete appState.categoryStates[key].filterMarked; // filterMarked giờ sẽ khác
+                    // Các trường khác của categoryStates như baseVerb, tag, currentIndex vẫn giữ
+                }
+            }
+            // delete appState.userPreferences.exampleSpeechRate; // Giữ lại nếu vẫn dùng
+            return appState;
         }
         console.log("FirestoreService: No AppState in Firestore for this user.");
         return null;
@@ -272,8 +301,25 @@ export async function saveAppStateToFirestoreService(userId, appStateData) {
         return false;
     }
     const appStateRef = doc(dbInstance, 'users', userId, 'userSettings', 'appStateDoc');
+    
+    // Tạo một bản sao của appStateData để không thay đổi đối tượng gốc
+    const cleanedAppState = JSON.parse(JSON.stringify(appStateData));
+
+    // Dọn dẹp các trường SRS/Favorite không còn dùng trong categoryStates
+    if (cleanedAppState.categoryStates) {
+        for (const key in cleanedAppState.categoryStates) {
+            // delete cleanedAppState.categoryStates[key].filterMarked; // filterMarked sẽ được quản lý lại
+            // Các trường SRS khác nếu có trong state cũ cũng nên được xóa
+            delete cleanedAppState.categoryStates[key].status; // Ví dụ
+        }
+    }
+    // Xóa các userPreferences không còn liên quan nếu có
+    // if (cleanedAppState.userPreferences) {
+        // delete cleanedAppState.userPreferences.someSrsPreference;
+    // }
+
     try {
-        await setDoc(appStateRef, appStateData); // Không cần merge ở đây vì ta lưu toàn bộ appState
+        await setDoc(appStateRef, cleanedAppState);
         console.log("FirestoreService: AppState saved to Firestore for user:", userId);
         return true;
     } catch (error) {
