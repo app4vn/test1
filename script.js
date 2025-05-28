@@ -691,7 +691,7 @@ async function toggleLearnedStatus(cardItem, learnedButtonElement) {
             return;
         }
         // FirestoreService.updateWebCardStatusInFirestore handles creating/updating the status doc
-        success = await FirestoreService.updateWebCardStatusInFirestore(userId, webCardGlobalId, cardItem, { isLearned: newLearnedState });
+        success = await FirestoreService.updateWebCardStatusInFirestore(userId, webCardGlobalId, cardItem, { isLearned: newLearnedState, updatedAt: serverTimestamp() }); // Pass updatedAt here too
     }
 
     if (success) {
@@ -706,9 +706,11 @@ async function toggleLearnedStatus(cardItem, learnedButtonElement) {
             updateLearnedButtonUI(learnedButtonElement, newLearnedState);
         }
         showToast(newLearnedState ? "Đã đánh dấu là Đã học!" : "Đã bỏ đánh dấu Đã học.", 2000, 'success');
+        
+        await saveAppState(); // Save app state after toggling learned status
 
         // Refresh current card display if it's the one being modified
-        if (window.currentData[window.currentIndex] === cardItem) {
+        if (window.currentData[window.currentIndex] === cardItem || (cardInCurrentData && window.currentData[window.currentIndex] === cardInCurrentData) ) {
             updateFlashcard();
         }
 
