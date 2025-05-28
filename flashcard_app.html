@@ -18,6 +18,63 @@
         }
       }
     </script>
+    <style>
+        /* CSS cho thẻ đã học */
+        .flashcard.is-learned .card-front {
+            background: linear-gradient(to right bottom, #fde047, #facc15); /* Tailwind yellow-300 to yellow-500 */
+            /* Hoặc một màu khác bạn thích, ví dụ:
+            background: linear-gradient(to right bottom, #a7f3d0, #6ee7b7); /* Tailwind green-200 to green-400 */
+            */
+        }
+        .flashcard.is-learned .card-back {
+             background: linear-gradient(to right bottom, #fde047, #facc15); /* Tailwind yellow-300 to yellow-500 */
+             /* Hoặc:
+             background: linear-gradient(to right bottom, #a7f3d0, #6ee7b7);
+             */
+        }
+        /* Đảm bảo chữ vẫn dễ đọc trên nền mới */
+        .flashcard.is-learned .card-front,
+        .flashcard.is-learned .card-back,
+        .flashcard.is-learned .card-front p,
+        .flashcard.is-learned .card-back p,
+        .flashcard.is-learned .card-front div,
+        .flashcard.is-learned .card-back div,
+        .flashcard.is-learned .card-front span, /* Cho các span trong word-display */
+        .flashcard.is-learned .card-back span,
+        .flashcard.is-learned .card-front button, /* Cho các nút trên thẻ */
+        .flashcard.is-learned .card-back button {
+            color: #422006; /* Một màu tối hơn, ví dụ Tailwind amber-950 hoặc black */
+        }
+        .flashcard.is-learned #pronunciation-display {
+            background-color: rgba(0,0,0,0.1); /* Giữ hoặc điều chỉnh lại nếu cần */
+        }
+         .flashcard.is-learned .example-item-on-card {
+            background-color: rgba(0,0,0,0.08); /* Hơi tối hơn một chút so với nền */
+        }
+        .flashcard.is-learned .example-label {
+            color: #78350f; /* Tailwind amber-800 */
+        }
+        .flashcard.is-learned .example-eng-on-card,
+        .flashcard.is-learned .example-vie-on-card,
+        .flashcard.is-learned .example-notes-on-card,
+        .flashcard.is-learned .meaning-notes-on-card {
+            color: #713f12; /* Tailwind amber-700 hoặc một màu tối hơn */
+        }
+        .flashcard.is-learned .meaning-text-on-card {
+             color: #422006; /* Tailwind amber-950 */
+        }
+        .flashcard.is-learned .original-term-on-back {
+            color: #92400e; /* Tailwind amber-600 */
+            opacity: 0.7;
+        }
+        .flashcard.is-learned .card-scrollable-content::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .flashcard.is-learned .card-scrollable-content::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+    </style>
 </head>
 <body class="bg-slate-100 text-slate-800 flex flex-col min-h-screen">
 
@@ -81,6 +138,7 @@
                 <label for="filter-card-status" class="block text-sm font-medium text-slate-600 mb-1">Hiển thị thẻ:</label>
                 <select id="filter-card-status" class="w-full p-2 border border-slate-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                     <option value="all_cards" title="Hiển thị tất cả các thẻ">Tất cả thẻ</option>
+                    <option value="learned" title="Hiển thị các thẻ đã học">Thẻ đã học</option>
                     </select>
             </div>
         </section>
