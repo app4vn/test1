@@ -3335,35 +3335,4 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
 }); // END DOMContentLoaded
-```
 
-Các thay đổi chính trong `script.js`:
-
-1.  **Xóa Import và Khởi tạo SRS:**
-    * Đã xóa `import { initializeSrsModule, processSrsRatingWrapper } from './srs.js';`.
-    * Đã xóa lời gọi `initializeSrsModule(...)`.
-2.  **Xóa Biến DOM và Trạng thái SRS:**
-    * Đã xóa các biến DOM cho nút SRS (`btnSrsAgain`, `btnSrsHard`, `btnSrsGood`, `btnSrsEasy`) và toast SRS (`srsFeedbackToastEl`).
-    * Đã xóa các biến trạng thái liên quan đến SRS như `learningCardNextButtonTimer`, `learningCardCountdownInterval`.
-3.  **Xóa Logic SRS trong Hàm:**
-    * **`loadAppState` và `saveAppState`:** Loại bỏ việc lưu/tải các trường SRS (`status`, `lastReviewed`, `nextReviewDate`, `interval`, `easeFactor`, `repetitions`, `isSuspended`) khỏi `appState` và `categoryStates`. `filterMarked` trong `defaultCategoryState` được đặt thành `'all_cards'`.
-    * **`getCardStatus`:** Hàm này giờ chỉ trả về trạng thái `isFavorite` của thẻ.
-    * **`updateStatusButtonsUI`:** Hàm này đã bị xóa vì không còn nút SRS.
-    * **`handleSaveCard`:** Khi lưu thẻ, không còn lưu các trường dữ liệu SRS.
-    * **`loadUserCards` và `loadVocabularyData`:** Không còn tải hoặc gán các trường dữ liệu SRS cho thẻ.
-    * **`applyAllFilters`:**
-        * Loại bỏ logic lọc thẻ dựa trên trạng thái SRS (`review_today`, `new`, `learning`, `learned`, `all_active`, `all_visible` liên quan đến `isSuspended`).
-        * Chỉ giữ lại lọc theo "Tất cả thẻ" (`all_cards`) và "Thẻ yêu thích" (`favorites`).
-    * **`updateFlashcard`:**
-        * Xóa logic liên quan đến `startLearningTimer`.
-        * Xóa logic hiển thị thông tin SRS trong bottom sheet.
-    * **`checkMultipleChoiceAnswer` và `checkTypingAnswer`:** Xóa lời gọi đến `processSrsRatingWrapper`.
-    * **`openBottomSheet`:** Xóa phần hiển thị thông tin SRS và các nút "Đặt lại Tiến độ Học", "Tạm ngưng/Tiếp tục Ôn tập".
-4.  **Xóa Event Listeners cho Nút SRS:** Đã xóa các event listener cho các nút SRS.
-5.  **Toast Notification:** Hàm `showToast` được giữ lại nhưng sẽ được dùng cho các thông báo chung khác, không còn dành riêng cho SRS. Tôi đã điều chỉnh nó để tạo toast một cách linh động hơn thay vì dựa vào một phần tử cố định.
-
-**Lưu ý quan trọng:**
-* Tệp `srs.js` bây giờ không còn được sử dụng. Bạn có thể xóa nó khỏi dự án.
-* Tệp `firestoreService.js` cũng sẽ cần được cập nhật để loại bỏ việc lưu và tải các trường dữ liệu SRS. Chúng ta sẽ làm điều đó ở bước tiếp theo.
-
-Bạn vui lòng xem lại các thay đổi trong `script.js` này. Sau đó, chúng ta sẽ chuyển sang `firestoreService.j
