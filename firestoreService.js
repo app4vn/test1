@@ -94,8 +94,7 @@ export async function loadUserCardsFromFirestore(userId, deckId) {
                 id: docSnap.id,
                 ...cardWithoutSrsAndFavorite,
                 isUserCard: true,
-                isLearned: data.isLearned || false, // Add isLearned, default to false
-                // isFavorite: data.isFavorite || false, // Favorite logic removed from client
+                isLearned: data.isLearned || false,
                 createdAt: data.createdAt?.toDate ? data.createdAt.toDate().getTime() : (data.createdAt || null),
                 updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().getTime() : (data.updatedAt || null)
             };
@@ -120,31 +119,28 @@ export async function saveCardToFirestore(userId, deckId, cardData, cardId = nul
 
     const {
         status, lastReviewed, reviewCount, nextReviewDate, interval, easeFactor, repetitions, isSuspended,
-        isFavorite, // Ensure isFavorite is not saved if script.js sends it by mistake
+        isFavorite, 
         ...dataToSaveClean
     } = cardData;
 
-    // Ensure isLearned is explicitly boolean if provided, otherwise it might not be set
     if (dataToSaveClean.hasOwnProperty('isLearned')) {
         dataToSaveClean.isLearned = !!dataToSaveClean.isLearned;
-    } else if (!cardId) { // Only default to false for new cards
+    } else if (!cardId) { 
         dataToSaveClean.isLearned = false;
     }
 
-
     try {
-        if (cardId) { // Update existing card
-            if (!dataToSaveClean.hasOwnProperty('updatedAt')) { // Ensure updatedAt is set for updates
+        if (cardId) { 
+            if (!dataToSaveClean.hasOwnProperty('updatedAt')) { 
                  dataToSaveClean.updatedAt = serverTimestamp();
             }
             const cardRef = doc(collectionRefPath, cardId);
-            await updateDoc(cardRef, dataToSaveClean); // Use updateDoc to avoid overwriting fields not in dataToSaveClean
+            await updateDoc(cardRef, dataToSaveClean); 
             console.log("FirestoreService: Card updated with ID:", cardId, "in deck:", deckId, "Data:", dataToSaveClean);
             return cardId;
-        } else { // Add new card
+        } else { 
             dataToSaveClean.createdAt = serverTimestamp();
             dataToSaveClean.updatedAt = serverTimestamp();
-            // isLearned will be false by default if not provided (handled above)
             const docRef = await addDoc(collectionRefPath, dataToSaveClean);
             console.log("FirestoreService: Card added with ID:", docRef.id, "to deck:", deckId, "Data:", dataToSaveClean);
             return docRef.id;
@@ -182,13 +178,12 @@ export async function getWebCardStatusFromFirestore(userId, webCardGlobalId) {
         if (docSnap.exists()) {
             const data = docSnap.data();
             return {
-                // isFavorite: data.isFavorite || false, // Favorite logic removed
-                isLearned: data.isLearned || false, // Add isLearned
+                isLearned: data.isLearned || false,
                 videoUrl: data.videoUrl || null,
                 updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().getTime() : null
             };
         }
-        return { isLearned: false, videoUrl: null }; // Default if no status document exists
+        return { isLearned: false, videoUrl: null }; 
     } catch (error) {
         console.error("FirestoreService: Error fetching web card status for", webCardGlobalId, error);
         return { isLearned: false, videoUrl: null };
@@ -219,11 +214,8 @@ export async function updateWebCardStatusInFirestore(userId, webCardGlobalId, ca
         updatedAt: serverTimestamp()
     };
 
-    // if (statusDataToUpdate.hasOwnProperty('isFavorite')) { // Favorite logic removed
-    //     dataToSet.isFavorite = !!statusDataToUpdate.isFavorite;
-    // }
     if (statusDataToUpdate.hasOwnProperty('isLearned')) {
-        dataToSet.isLearned = !!statusDataToUpdate.isLearned; // Ensure boolean
+        dataToSet.isLearned = !!statusDataToUpdate.isLearned; 
     }
     if (statusDataToUpdate.hasOwnProperty('videoUrl')) {
         dataToSet.videoUrl = statusDataToUpdate.videoUrl || null;
@@ -270,7 +262,7 @@ export async function saveAppStateToFirestoreService(userId, appStateData) {
     }
     const appStateRef = doc(dbInstance, 'users', userId, 'userSettings', 'appStateDoc');
     try {
-        await setDoc(appStateRef, appStateData); // appStateData already cleaned by script.js
+        await setDoc(appStateRef, appStateData); 
         console.log("FirestoreService: AppState saved to Firestore for user:", userId);
         return true;
     } catch (error) {
@@ -317,6 +309,50 @@ export async function saveLectureContent(lectureId, title, contentHTML) {
         return true;
     } catch (error) {
         console.error("FirestoreService: Error saving lecture content:", error);
+        return false;
+    }
+}
+
+// --- Custom Exercise Operations ---
+const CUSTOM_EXERCISES_COLLECTION = 'customExercises';
+
+export async function getCustomExercise(exerciseId) {
+    if (!dbInstance || !exerciseId) {
+        console.error("FirestoreService: Missing dbInstance or exerciseId for getCustomExercise");
+        return null;
+    }
+    const exerciseRef = doc(dbInstance, CUSTOM_EXERCISES_COLLECTION, exerciseId);
+    try {
+        const docSnap = await getDoc(exerciseRef);
+        if (docSnap.exists()) {
+            console.log("FirestoreService: Custom exercise loaded for ID:", exerciseId);
+            return docSnap.data();
+        }
+        console.log("FirestoreService: No custom exercise found for ID:", exerciseId);
+        return null;
+    } catch (error) {
+        console.error("FirestoreService: Error loading custom exercise:", error);
+        return null;
+    }
+}
+
+export async function saveCustomExercise(exerciseId, title, exerciseHTML) {
+    if (!dbInstance || !exerciseId || typeof title !== 'string' || typeof exerciseHTML !== 'string') {
+        console.error("FirestoreService: Missing data or invalid type for saveCustomExercise");
+        return false;
+    }
+    const exerciseRef = doc(dbInstance, CUSTOM_EXERCISES_COLLECTION, exerciseId);
+    const dataToSave = {
+        title: title,
+        exerciseHTML: exerciseHTML, // Lưu HTML của bài tập
+        lastUpdatedAt: serverTimestamp()
+    };
+    try {
+        await setDoc(exerciseRef, dataToSave, { merge: true });
+        console.log("FirestoreService: Custom exercise saved for ID:", exerciseId);
+        return true;
+    } catch (error) {
+        console.error("FirestoreService: Error saving custom exercise:", error);
         return false;
     }
 }
