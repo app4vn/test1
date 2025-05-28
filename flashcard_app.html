@@ -401,17 +401,4 @@ Hoặc một mảng thẻ:
     <script type="module" src="script.js"></script>
 </body>
 </html>
-```
 
-Tôi đã thực hiện các thay đổi sau trong `flashcard_app.html`:
-
-1.  **Xóa Section Nút SRS:** Loại bỏ toàn bộ `<section class="status-controls ...">` chứa các nút "Lặp lại", "Khó", "Tốt", "Dễ".
-2.  **Cập nhật Dropdown "Hiển thị thẻ" (`filter-card-status`):**
-    * Xóa các tùy chọn: "Cần ôn tập hôm nay" (`review_today`), "Thẻ mới (chưa ôn)" (`new`), "Thẻ đang ôn luyện" (`learning`), "Thẻ đã nắm vững" (`learned`).
-    * Xóa các dòng phân cách liên quan đến SRS.
-    * Đổi tên tùy chọn `all_active` thành `all_cards` với title "Hiển thị tất cả các thẻ".
-    * Giữ lại tùy chọn "Thẻ yêu thích" (`favorites`) và "Tất cả (gồm cả tạm ngưng)" (`all_visible`). Tuy nhiên, `all_visible` và `isSuspended` sẽ được xem xét lại trong các bước sau khi chỉnh sửa `script.js` và `firestoreService.js` để xem liệu tính năng "tạm ngưng" có còn ý nghĩa độc lập hay không. Hiện tại, tôi vẫn giữ nó lại.
-3.  **Xóa Toast Notification SRS:** Loại bỏ `div` có `id="srs-feedback-toast"`.
-4.  **Xóa Import `srs.js`:** Loại bỏ dòng `<script type="module" src="srs.js"></script>`.
-
-Tiếp theo, chúng ta sẽ chỉnh sửa tệp `script.js` để loại bỏ logic SRS. Bạn có muốn xem lại những thay đổi trong `flashcard_app.html` này trước không, hay tôi tiếp tục với `script.j
