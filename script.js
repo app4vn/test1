@@ -715,8 +715,13 @@ async function toggleLearnedStatus(cardItem, learnedButtonElement) {
         }
 
         // Re-apply filters if currently viewing "Thẻ đã học" or "Tất cả thẻ" to reflect change
+        // Ensure applyAllFilters is correctly referenced or defined if this line causes issues.
         if (filterCardStatusSelect && (filterCardStatusSelect.value === 'learned' || filterCardStatusSelect.value === 'all_cards')) {
-            applyAllFilters();
+             if (typeof applyAllFilters === 'function') { // Check if function exists
+                applyAllFilters();
+            } else {
+                console.error("applyAllFilters function is not defined or not in scope when called from toggleLearnedStatus");
+            }
         }
     } else {
         showToast("Lỗi cập nhật trạng thái 'Đã học'. Vui lòng thử lại.", 3000, 'error');
@@ -849,6 +854,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.updateMainHeaderTitle = updateMainHeaderTitle;
     window.loadVocabularyData = loadVocabularyData;
     window.updateFlashcard = updateFlashcard;
+    // Make applyAllFilters globally accessible for toggleLearnedStatus if it's not already due to hoisting
+    window.applyAllFilters = applyAllFilters;
+
 
     initializeAuthModule(fbAuth, handleAuthStateChangedInApp);
     FirestoreService.initializeFirestoreService(db);
