@@ -23,8 +23,6 @@ export async function loadUserDecksFromFirestore(userId) {
         return querySnapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
     } catch (error) {
         console.error("FirestoreService: Error loading decks:", error);
-        // Consider a more user-friendly error display or logging mechanism
-        // alert("Không thể tải danh sách bộ thẻ từ cơ sở dữ liệu. Vui lòng thử lại.");
         return [];
     }
 }
@@ -43,11 +41,9 @@ export async function createDeckInFirestore(userId, deckName) {
         const decksCollectionRef = collection(dbInstance, 'users', userId, 'decks');
         const docRef = await addDoc(decksCollectionRef, newDeckData);
         console.log("FirestoreService: Deck created with ID:", docRef.id);
-        // Return client-side timestamp for createdAt for immediate use, Firestore will have serverTimestamp
         return { id: docRef.id, ...newDeckData, createdAt: Date.now() };
     } catch (error) {
         console.error("FirestoreService: Error creating deck:", error);
-        // alert("Đã xảy ra lỗi khi tạo bộ thẻ. Vui lòng thử lại.");
         return null;
     }
 }
@@ -59,12 +55,11 @@ export async function updateDeckNameInFirestore(userId, deckId, newName) {
     }
     const deckRef = doc(dbInstance, 'users', userId, 'decks', deckId);
     try {
-        await updateDoc(deckRef, { name: newName.trim(), updatedAt: serverTimestamp() }); // Add updatedAt
+        await updateDoc(deckRef, { name: newName.trim(), updatedAt: serverTimestamp() });
         console.log("FirestoreService: Deck name updated for ID:", deckId);
         return true;
     } catch (error) {
         console.error("FirestoreService: Error updating deck name:", error);
-        // alert("Đã xảy ra lỗi khi cập nhật tên bộ thẻ. Vui lòng thử lại.");
         return false;
     }
 }
@@ -78,9 +73,6 @@ export async function loadUserCardsFromFirestore(userId, deckId) {
 
     let cardsCollectionRef;
     if (deckId === null) {
-        // This case for unassigned cards is generally handled by filtering all cards client-side.
-        // If you had a specific collection for unassigned, this would be different.
-        // For now, this function is best suited for loading from a specific deck.
         console.warn("FirestoreService: loadUserCardsFromFirestore called with deckId=null. This is usually handled by client-side filtering.");
         return [];
     } else {
@@ -88,30 +80,28 @@ export async function loadUserCardsFromFirestore(userId, deckId) {
         cardsCollectionRef = collection(dbInstance, 'users', userId, 'decks', deckId, 'cards');
     }
 
-    // Order by createdAt or another relevant field if needed
     const qCards = query(cardsCollectionRef, orderBy('createdAt', 'asc'));
     try {
         const querySnapshot = await getDocs(qCards);
         return querySnapshot.docs.map(docSnap => {
             const data = docSnap.data();
-            // Remove SRS fields from the returned card object
             const {
                 status, lastReviewed, reviewCount, nextReviewDate, interval, easeFactor, repetitions, isSuspended,
-                ...cardWithoutSrs
+                isFavorite, // Explicitly remove if it exists from old data
+                ...cardWithoutSrsAndFavorite // Spread the rest of the card data
             } = data;
             return {
                 id: docSnap.id,
-                ...cardWithoutSrs, // Spread the rest of the card data
+                ...cardWithoutSrsAndFavorite,
                 isUserCard: true,
-                isFavorite: data.isFavorite || false,
-                // Convert Timestamps to milliseconds for client-side usage if they exist
+                isLearned: data.isLearned || false, // Add isLearned, default to false
+                // isFavorite: data.isFavorite || false, // Favorite logic removed from client
                 createdAt: data.createdAt?.toDate ? data.createdAt.toDate().getTime() : (data.createdAt || null),
                 updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().getTime() : (data.updatedAt || null)
             };
         });
     } catch (error) {
         console.error(`FirestoreService: Error loading cards for deck ${deckId}:`, error);
-        // alert("Không thể tải danh sách thẻ. Vui lòng thử lại.");
         return [];
     }
 }
@@ -128,33 +118,39 @@ export async function saveCardToFirestore(userId, deckId, cardData, cardId = nul
 
     let collectionRefPath = collection(dbInstance, 'users', userId, 'decks', deckId, 'cards');
 
-    // Ensure only non-SRS fields are prepared for saving
     const {
-        status, lastReviewed, reviewCount, nextReviewDate, interval, easeFactor, repetitions, isSuspended, // Fields to exclude
-        ...dataToSaveClean // The rest of the fields
+        status, lastReviewed, reviewCount, nextReviewDate, interval, easeFactor, repetitions, isSuspended,
+        isFavorite, // Ensure isFavorite is not saved if script.js sends it by mistake
+        ...dataToSaveClean
     } = cardData;
 
-    // Ensure isFavorite is explicitly boolean
-    dataToSaveClean.isFavorite = !!dataToSaveClean.isFavorite;
+    // Ensure isLearned is explicitly boolean if provided, otherwise it might not be set
+    if (dataToSaveClean.hasOwnProperty('isLearned')) {
+        dataToSaveClean.isLearned = !!dataToSaveClean.isLearned;
+    } else if (!cardId) { // Only default to false for new cards
+        dataToSaveClean.isLearned = false;
+    }
 
 
     try {
         if (cardId) { // Update existing card
-            dataToSaveClean.updatedAt = serverTimestamp();
+            if (!dataToSaveClean.hasOwnProperty('updatedAt')) { // Ensure updatedAt is set for updates
+                 dataToSaveClean.updatedAt = serverTimestamp();
+            }
             const cardRef = doc(collectionRefPath, cardId);
-            await updateDoc(cardRef, dataToSaveClean);
-            console.log("FirestoreService: Card updated with ID:", cardId, "in deck:", deckId);
+            await updateDoc(cardRef, dataToSaveClean); // Use updateDoc to avoid overwriting fields not in dataToSaveClean
+            console.log("FirestoreService: Card updated with ID:", cardId, "in deck:", deckId, "Data:", dataToSaveClean);
             return cardId;
         } else { // Add new card
             dataToSaveClean.createdAt = serverTimestamp();
             dataToSaveClean.updatedAt = serverTimestamp();
+            // isLearned will be false by default if not provided (handled above)
             const docRef = await addDoc(collectionRefPath, dataToSaveClean);
-            console.log("FirestoreService: Card added with ID:", docRef.id, "to deck:", deckId);
+            console.log("FirestoreService: Card added with ID:", docRef.id, "to deck:", deckId, "Data:", dataToSaveClean);
             return docRef.id;
         }
     } catch (error) {
         console.error("FirestoreService: Error saving card:", error, "Data attempted:", dataToSaveClean);
-        // alert("Đã xảy ra lỗi khi lưu thẻ. Vui lòng thử lại.");
         return null;
     }
 }
@@ -171,39 +167,34 @@ export async function deleteCardFromFirestore(userId, deckId, cardId) {
         return true;
     } catch (error) {
         console.error("FirestoreService: Error deleting card:", error);
-        // alert("Đã xảy ra lỗi khi xóa thẻ. Vui lòng thử lại.");
         return false;
     }
 }
 
 // --- Web Card Status Operations ---
-// This function now primarily handles 'isFavorite' and 'videoUrl' for web cards.
 export async function getWebCardStatusFromFirestore(userId, webCardGlobalId) {
     if (!userId || !dbInstance || !webCardGlobalId) {
-        return null; // Or { isFavorite: false, videoUrl: null } as a default
+        return null;
     }
     const statusRef = doc(dbInstance, 'users', userId, 'webCardStatuses', webCardGlobalId);
     try {
         const docSnap = await getDoc(statusRef);
         if (docSnap.exists()) {
             const data = docSnap.data();
-            // Only return relevant non-SRS fields
             return {
-                isFavorite: data.isFavorite || false,
-                videoUrl: data.videoUrl || null, // User-specific video URL for a web card
-                // originalCategory: data.originalCategory, // Kept for reference if needed
-                // originalWordOrPhrase: data.originalWordOrPhrase, // Kept for reference
+                // isFavorite: data.isFavorite || false, // Favorite logic removed
+                isLearned: data.isLearned || false, // Add isLearned
+                videoUrl: data.videoUrl || null,
                 updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().getTime() : null
             };
         }
-        return { isFavorite: false, videoUrl: null }; // Default if no status document exists
+        return { isLearned: false, videoUrl: null }; // Default if no status document exists
     } catch (error) {
         console.error("FirestoreService: Error fetching web card status for", webCardGlobalId, error);
-        return { isFavorite: false, videoUrl: null };
+        return { isLearned: false, videoUrl: null };
     }
 }
 
-// This function now primarily updates 'isFavorite' and 'videoUrl' for web cards.
 export async function updateWebCardStatusInFirestore(userId, webCardGlobalId, cardData, statusDataToUpdate) {
     if (!userId || !dbInstance || !webCardGlobalId || !cardData || !statusDataToUpdate) {
         console.error("FirestoreService: Missing data for updateWebCardStatusInFirestore. Aborting.");
@@ -222,26 +213,25 @@ export async function updateWebCardStatusInFirestore(userId, webCardGlobalId, ca
         return false;
     }
 
-    // Prepare data to set, focusing on non-SRS fields.
-    // statusDataToUpdate might come with 'isFavorite' or 'videoUrl'.
     const dataToSet = {
         originalCategory: cardData.category,
         originalWordOrPhrase: originalTerm,
         updatedAt: serverTimestamp()
     };
 
-    if (statusDataToUpdate.hasOwnProperty('isFavorite')) {
-        dataToSet.isFavorite = !!statusDataToUpdate.isFavorite; // Ensure boolean
+    // if (statusDataToUpdate.hasOwnProperty('isFavorite')) { // Favorite logic removed
+    //     dataToSet.isFavorite = !!statusDataToUpdate.isFavorite;
+    // }
+    if (statusDataToUpdate.hasOwnProperty('isLearned')) {
+        dataToSet.isLearned = !!statusDataToUpdate.isLearned; // Ensure boolean
     }
     if (statusDataToUpdate.hasOwnProperty('videoUrl')) {
-        dataToSet.videoUrl = statusDataToUpdate.videoUrl || null; // Allow clearing videoUrl
+        dataToSet.videoUrl = statusDataToUpdate.videoUrl || null;
     }
-    // Any other SRS fields in statusDataToUpdate will be ignored here.
 
-    console.log("[FirestoreService] updateWebCardStatusInFirestore (no SRS) - Data to set:", JSON.parse(JSON.stringify(dataToSet)));
+    console.log("[FirestoreService] updateWebCardStatusInFirestore (with isLearned) - Data to set:", JSON.parse(JSON.stringify(dataToSet)));
 
     try {
-        // Use merge: true to only update specified fields and not overwrite other potential user settings for this web card.
         await setDoc(statusRef, dataToSet, { merge: true });
         console.log(`FirestoreService: Web card status updated for ${webCardGlobalId}:`, dataToSet);
         return true;
@@ -253,7 +243,7 @@ export async function updateWebCardStatusInFirestore(userId, webCardGlobalId, ca
 
 
 // --- AppState Operations ---
-export async function loadAppStateFromFirestore(userId) { // SRS fields within appState will be ignored by script.js
+export async function loadAppStateFromFirestore(userId) {
     if (!userId || !dbInstance) {
         console.error("FirestoreService: Missing userId or dbInstance for loadAppStateFromFirestore");
         return null;
@@ -263,7 +253,7 @@ export async function loadAppStateFromFirestore(userId) { // SRS fields within a
         const docSnap = await getDoc(appStateRef);
         if (docSnap.exists()) {
             console.log("FirestoreService: AppState loaded from Firestore.");
-            return docSnap.data(); // script.js will handle filtering out SRS fields
+            return docSnap.data();
         }
         console.log("FirestoreService: No AppState in Firestore for this user.");
         return null;
@@ -273,16 +263,15 @@ export async function loadAppStateFromFirestore(userId) { // SRS fields within a
     }
 }
 
-export async function saveAppStateToFirestoreService(userId, appStateData) { // appStateData from script.js will no longer contain SRS fields
+export async function saveAppStateToFirestoreService(userId, appStateData) {
     if (!userId || !dbInstance || !appStateData) {
         console.error("FirestoreService: Missing data for saveAppStateToFirestoreService");
         return false;
     }
     const appStateRef = doc(dbInstance, 'users', userId, 'userSettings', 'appStateDoc');
     try {
-        // appStateData is already cleaned of SRS fields by script.js before calling this
-        await setDoc(appStateRef, appStateData);
-        console.log("FirestoreService: AppState saved to Firestore for user (no SRS fields expected):", userId);
+        await setDoc(appStateRef, appStateData); // appStateData already cleaned by script.js
+        console.log("FirestoreService: AppState saved to Firestore for user:", userId);
         return true;
     } catch (error) {
         console.error("FirestoreService: Error saving appState to Firestore:", error);
@@ -290,7 +279,7 @@ export async function saveAppStateToFirestoreService(userId, appStateData) { // 
     }
 }
 
-// --- Lecture Content Operations --- (Remains the same)
+// --- Lecture Content Operations ---
 export async function getLectureContent(lectureId) {
     if (!dbInstance || !lectureId) {
         console.error("FirestoreService: Missing dbInstance or lectureId for getLectureContent");
