@@ -242,7 +242,6 @@
             <div class="mb-4 flex justify-center space-x-2">
                 <button id="manual-input-mode-btn" class="input-mode-toggle-btn active">Nhập Thủ Công</button>
                 <button id="json-input-mode-btn" class="input-mode-toggle-btn">Nhập từ JSON</button>
-                <button id="ai-generate-json-btn" class="input-mode-toggle-btn">AI tạo JSON</button>
             </div>
 
             <form id="add-edit-card-form" class="space-y-4 overflow-y-auto pr-2 flex-grow">
@@ -274,7 +273,7 @@
                 <div class="border-t pt-4 mt-4">
                     <div class="flex justify-between items-center mb-2">
                         <h3 class="text-lg font-medium text-slate-700">Các khối nghĩa & ví dụ:</h3>
-                        <p id="meaning-blocks-general-error" class="form-error-message hidden"></p>
+                        <p id="meaning-blocks-general-error" class="form-error-message hidden text-right"></p>
                     </div>
                     <div id="meaning-blocks-container" class="space-y-0">
                         </div>
@@ -324,22 +323,6 @@ Hoặc một mảng thẻ:
                 </div>
             </div>
 
-            <div id="ai-json-prompt-area" class="hidden space-y-4 overflow-y-auto pr-2 flex-grow">
-                <div>
-                    <label for="ai-prompt-input" class="block text-sm font-medium text-slate-600">Nhập từ/cụm từ/thành ngữ bạn muốn tạo thẻ:</label>
-                    <textarea id="ai-prompt-input" rows="4" class="mt-1 block w-full p-2 border border-slate-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Ví dụ: 'look up' (phrasal verb), 'take a break' (collocation), 'kick the bucket' (idiom), hoặc 'develop' (verb), 'happy' (adjective)."></textarea>
-                    <p id="ai-prompt-error-message" class="form-error-message hidden"></p>
-                </div>
-                <div class="flex justify-end">
-                    <button type="button" id="start-ai-generation-btn" class="py-2 px-4 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-md shadow-sm">Tạo JSON</button>
-                </div>
-                <div id="ai-generation-feedback" class="mt-2 text-sm text-center hidden"></div>
-                 <div id="ai-deck-assignment-container">
-                    <label for="ai-card-deck-assignment-select" class="block text-sm font-medium text-slate-600">Gán thẻ này vào bộ thẻ:</label>
-                    <select id="ai-card-deck-assignment-select" class="mt-1 block w-full p-2 border border-slate-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></select>
-                     <p id="ai-deck-creation-hint" class="text-xs text-slate-500 mt-1 hidden"></p>
-                </div>
-            </div>
             <div class="flex justify-end space-x-3 pt-4 mt-auto border-t">
                 <button type="button" id="cancel-card-btn" class="py-2 px-4 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-md shadow-sm">Hủy</button>
                 <button type="submit" form="add-edit-card-form" id="save-card-btn" class="py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-md shadow-sm">Lưu thẻ</button>
