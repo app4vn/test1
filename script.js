@@ -2,6 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAI, getGenerativeModel, GoogleAIBackend } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-ai.js"; // THÊM DÒNG NÀY
 
 // Import từ các module tự tạo
 import { initializeAuthModule, openAuthModal as openAuthModalFromAuth, getCurrentUserId, handleAuthAction as handleAuthActionFromAuth } from './auth.js';
@@ -20,6 +21,13 @@ const firebaseConfig = {
 const fbApp = initializeApp(firebaseConfig);
 const fbAuth = getAuth(fbApp);
 const db = getFirestore(fbApp);
+
+// Khởi tạo AI Logic
+const ai = getAI(fbApp, { backend: new GoogleAIBackend() });
+const model = getGenerativeModel(ai, { model: "gemini-1.5-flash" }); // Hoặc "gemini-pro" cho các prompt phức tạp hơn
+// Lưu ý: "gemini-1.5-flash" hoặc "gemini-pro" là các model thông thường. "gemini-2.0-flash" là tên model ví dụ trong tài liệu, có thể không phải tên chính xác.
+// Bạn có thể tham khảo thêm tại: https://firebase.google.com/docs/ai/choose-model
+
 
 // KHAI BÁO CÁC BIẾN DOM SẼ ĐƯỢC SỬ DỤNG Ở PHẠM VI MODULE
 let mainHeaderTitle, cardSourceSelect, categorySelect, flashcardElement, wordDisplay,
@@ -49,7 +57,10 @@ let mainHeaderTitle, cardSourceSelect, categorySelect, flashcardElement, wordDis
     actionBtnNotes, actionBtnMedia, actionBtnPracticeCard, 
     bottomSheetTabsContainer, tabBtnYouTube,
     flipIconFront, flipIconBack, cardFrontElement,
-    recentlyViewedListElement, noRecentCardsMessageElement;
+    recentlyViewedListElement, noRecentCardsMessageElement,
+    // Các biến mới cho AI Generation
+    aiGenerateJsonBtn, aiJsonPromptArea, aiPromptInput, aiPromptErrorMessage, startAiGenerationBtn,
+    aiGenerationFeedback, aiCardDeckAssignmentSelect, aiDeckCreationHint;
 
 
 // KHAI BÁO CÁC BIẾN TRẠNG THÁI ỨNG DỤNG Ở PHẠM VI MODULE
@@ -116,7 +127,7 @@ const defaultAppState = {
 };
 let appState = JSON.parse(JSON.stringify(defaultAppState));
 
-const appStateStorageKey = 'flashcardAppState_v7_customExercise'; 
+const appStateStorageKey = 'flashcardApp_v7_customExercise_ai'; // Cập nhật key để tránh xung đột với các phiên bản cũ
 
 
 function generateUniqueId(prefix = 'id') {
@@ -364,10 +375,13 @@ async function handleAuthStateChangedInApp(user) {
 
 let toastTimeout;
 function showToast(message, duration = 3000, type = 'info') {
-    const generalToastEl = document.createElement('div');
-    generalToastEl.id = 'general-feedback-toast';
-    generalToastEl.className = 'fixed bottom-5 right-5 text-white text-sm py-3 px-5 rounded-lg shadow-md opacity-0 transition-opacity duration-500 ease-in-out z-[1010]';
-    document.body.appendChild(generalToastEl);
+    let generalToastEl = document.getElementById('general-feedback-toast');
+    if (!generalToastEl) {
+        generalToastEl = document.createElement('div');
+        generalToastEl.id = 'general-feedback-toast';
+        generalToastEl.className = 'fixed bottom-5 right-5 text-white text-sm py-3 px-5 rounded-lg shadow-md opacity-0 transition-opacity duration-500 ease-in-out z-[1010]';
+        document.body.appendChild(generalToastEl);
+    }
 
 
     generalToastEl.textContent = message;
@@ -743,6 +757,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     flipIconBack = document.getElementById('flip-icon-back');
     recentlyViewedListElement = document.getElementById('recently-viewed-list');
     noRecentCardsMessageElement = document.getElementById('no-recent-cards-message');
+    // Gán các biến DOM mới cho AI Generation
+    aiGenerateJsonBtn = document.getElementById('ai-generate-json-btn');
+    aiJsonPromptArea = document.getElementById('ai-json-prompt-area');
+    aiPromptInput = document.getElementById('ai-prompt-input');
+    aiPromptErrorMessage = document.getElementById('ai-prompt-error-message');
+    startAiGenerationBtn = document.getElementById('start-ai-generation-btn');
+    aiGenerationFeedback = document.getElementById('ai-generation-feedback');
+    aiCardDeckAssignmentSelect = document.getElementById('ai-card-deck-assignment-select');
+    aiDeckCreationHint = document.getElementById('ai-deck-creation-hint');
 
 
     window.wordDisplay = wordDisplay;
@@ -774,10 +797,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
         if (jsonImportErrorMessage) jsonImportErrorMessage.classList.add('hidden');
         if (jsonImportSuccessMessage) jsonImportSuccessMessage.classList.add('hidden');
+        // Clear AI specific errors
+        if (aiPromptErrorMessage) aiPromptErrorMessage.classList.add('hidden');
+        if (aiGenerationFeedback) {
+            aiGenerationFeedback.classList.add('hidden');
+            aiGenerationFeedback.textContent = '';
+            aiGenerationFeedback.classList.remove('text-red-500', 'text-green-600');
+        }
     }
 
     function createClearButtonForInput(inputElement) { let clearBtn = inputElement.parentNode.querySelector('.input-clear-btn'); if (clearBtn) { clearBtn.style.display = inputElement.value ? 'block' : 'none'; return clearBtn; } clearBtn = document.createElement('button'); clearBtn.type = 'button'; clearBtn.className = 'input-clear-btn'; clearBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>`; clearBtn.setAttribute('aria-label', 'Xóa nội dung'); clearBtn.style.display = inputElement.value ? 'block' : 'none'; clearBtn.addEventListener('click', (e) => { e.stopPropagation(); const oldValue = inputElement.value; inputElement.value = ''; clearBtn.style.display = 'none'; inputElement.focus(); if (oldValue !== '') { inputElement.dispatchEvent(new Event('input', { bubbles: true })); } }); inputElement.addEventListener('input', () => { clearBtn.style.display = inputElement.value ? 'block' : 'none'; }); if(inputElement.parentNode.classList.contains('relative')) { inputElement.parentNode.appendChild(clearBtn); } return clearBtn; }
-    function initializeClearButtonsForModal() { const inputsWithClear = [ cardWordInput, cardPronunciationInput, cardBaseVerbInput, cardTagsInput, cardGeneralNotesInput, cardVideoUrlInput ]; inputsWithClear.forEach(inputEl => { if (inputEl && inputEl.parentNode.classList.contains('relative')) { createClearButtonForInput(inputEl); } }); meaningBlocksContainer.querySelectorAll('.card-meaning-text-input, .card-meaning-notes-input').forEach(input => { if (input && input.parentNode.classList.contains('relative')) createClearButtonForInput(input); }); }
+    function initializeClearButtonsForModal() { const inputsWithClear = [ cardWordInput, cardPronunciationInput, cardBaseVerbInput, cardTagsInput, cardGeneralNotesInput, cardVideoUrlInput, aiPromptInput ]; inputsWithClear.forEach(inputEl => { if (inputEl && inputEl.parentNode.classList.contains('relative')) { createClearButtonForInput(inputEl); } }); meaningBlocksContainer.querySelectorAll('.card-meaning-text-input, .card-meaning-notes-input').forEach(input => { if (input && input.parentNode.classList.contains('relative')) createClearButtonForInput(input); }); }
     function initializeClearButtonForSearch() { if (searchInput && searchInput.parentNode.classList.contains('relative')) { createClearButtonForInput(searchInput); } }
 
     function createExampleEntryElement(exampleData = { id: generateUniqueId('ex'), eng: '', vie: '', exampleNotes: '' }) { const exampleEntryDiv = document.createElement('div'); exampleEntryDiv.className = 'example-entry space-y-1'; exampleEntryDiv.dataset.exampleId = exampleData.id || generateUniqueId('ex'); exampleEntryDiv.innerHTML = `<div class="flex justify-between items-center"><label class="block text-xs font-medium text-slate-500">Ví dụ Tiếng Anh</label><button type="button" class="remove-example-entry-btn text-red-400 hover:text-red-600 text-xs remove-entry-btn" title="Xóa ví dụ này"><i class="fas fa-times-circle"></i> Xóa</button></div><textarea rows="2" class="card-example-eng-input block w-full p-1.5 border border-slate-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" placeholder="Câu ví dụ (Tiếng Anh)">${exampleData.eng}</textarea><label class="block text-xs font-medium text-slate-500 mt-1">Nghĩa ví dụ (Tiếng Việt - tùy chọn)</label><textarea rows="1" class="card-example-vie-input block w-full p-1.5 border border-slate-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" placeholder="Nghĩa tiếng Việt của ví dụ">${exampleData.vie}</textarea><label class="block text-xs font-medium text-slate-500 mt-1">Ghi chú cho ví dụ này (tùy chọn)</label><textarea rows="1" class="card-example-notes-input block w-full p-1.5 border border-slate-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" placeholder="Ghi chú cho ví dụ">${exampleData.exampleNotes || ''}</textarea>`; exampleEntryDiv.querySelector('.remove-example-entry-btn').addEventListener('click', function() { this.closest('.example-entry').remove(); }); return exampleEntryDiv; }
@@ -852,7 +882,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function populateDeckSelects() {
-        const deckSelects = [userDeckSelect, cardDeckAssignmentSelect, jsonCardDeckAssignmentSelect, copyToDeckSelect];
+        const deckSelects = [userDeckSelect, cardDeckAssignmentSelect, jsonCardDeckAssignmentSelect, aiCardDeckAssignmentSelect, copyToDeckSelect];
         deckSelects.forEach(selectEl => {
             if (selectEl) {
                 const currentValue = selectEl.value;
@@ -1073,7 +1103,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function openAddEditModal(mode = 'add', cardData = null) {
         const userId = getCurrentUserId();
-        if (cardSourceSelect.value === 'user' && !userId && mode !== 'json_import') {
+        if (cardSourceSelect.value === 'user' && !userId && mode !== 'json_import' && mode !== 'ai') { // Thêm mode 'ai'
             alert("Vui lòng đăng nhập để thêm hoặc sửa thẻ của bạn.");
             openAuthModalFromAuth('login');
             return;
@@ -1083,14 +1113,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (mode === 'json_import') {
             switchToInputMode('json');
-        } else {
+        } else if (mode === 'ai') { // Chế độ mới
+            switchToInputMode('ai');
+        }
+        else {
             switchToInputMode('manual');
         }
 
         addEditCardForm.reset();
         cardJsonInput.value = '';
+        aiPromptInput.value = ''; // Reset AI prompt input
         jsonImportErrorMessage.classList.add('hidden');
         jsonImportSuccessMessage.classList.add('hidden');
+        aiPromptErrorMessage.classList.add('hidden');
+        aiGenerationFeedback.classList.add('hidden');
+
 
         cardIdInput.value = '';
         currentEditingCardId = cardData && mode === 'edit' ? cardData.id : null;
@@ -1134,15 +1171,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
         populateDeckSelects();
-        const deckSelectToUse = currentInputMode === 'json' ? jsonCardDeckAssignmentSelect : cardDeckAssignmentSelect;
-        const deckHintToUse = currentInputMode === 'json' ? jsonDeckCreationHint : deckCreationHint;
+        const deckSelectToUse = currentInputMode === 'json' ? jsonCardDeckAssignmentSelect : (currentInputMode === 'ai' ? aiCardDeckAssignmentSelect : cardDeckAssignmentSelect);
+        const deckHintToUse = currentInputMode === 'json' ? jsonDeckCreationHint : (currentInputMode === 'ai' ? aiDeckCreationHint : deckCreationHint);
 
 
-        if (cardSourceSelect.value === 'user' || mode === 'json_import') {
+        if (cardSourceSelect.value === 'user' || mode === 'json_import' || mode === 'ai') { // Thêm mode 'ai'
             if (currentInputMode === 'json') {
                 document.getElementById('json-deck-assignment-container').style.display = 'block';
-            } else {
+                document.getElementById('ai-deck-assignment-container').style.display = 'none';
+            } else if (currentInputMode === 'ai') { // Chế độ mới
+                document.getElementById('ai-deck-assignment-container').style.display = 'block';
+                document.getElementById('json-deck-assignment-container').style.display = 'none';
+            }
+            else {
                 modalDeckAssignmentContainer.style.display = 'block';
+                document.getElementById('json-deck-assignment-container').style.display = 'none';
+                document.getElementById('ai-deck-assignment-container').style.display = 'none';
             }
 
             if (mode === 'edit' && cardData && cardData.deckId) {
@@ -1153,7 +1197,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (deckHintToUse) deckHintToUse.classList.add('hidden');
             } else {
                 deckSelectToUse.value = '';
-                if ((!Array.isArray(userDecks) || userDecks.length === 0) && (mode === 'add' || mode === 'json_import')) {
+                if ((!Array.isArray(userDecks) || userDecks.length === 0) && (mode === 'add' || mode === 'json_import' || mode === 'ai')) { // Thêm mode 'ai'
                     if (deckHintToUse) {
                         deckHintToUse.innerHTML = "Mẹo: Bạn cần tạo một bộ thẻ trước khi thêm thẻ mới. Hãy vào menu <i class='fas fa-bars'></i> > Quản lý Bộ thẻ.";
                         deckHintToUse.classList.remove('hidden');
@@ -1166,6 +1210,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             modalDeckAssignmentContainer.style.display = 'none';
             if (deckHintToUse) deckHintToUse.classList.add('hidden');
             document.getElementById('json-deck-assignment-container').style.display = 'none';
+            document.getElementById('ai-deck-assignment-container').style.display = 'none'; // Ẩn cả AI deck container
         }
 
         if (mode === 'edit' && cardData) {
@@ -1198,15 +1243,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             cardVideoUrlInput.value = '';
         }
         updateRemoveMeaningBlockButtonsState();
-        [cardWordInput, cardPronunciationInput, cardBaseVerbInput, cardTagsInput, cardGeneralNotesInput, cardVideoUrlInput].forEach(input => { if (input) input.dispatchEvent(new Event('input', { bubbles: true })); });
+        [cardWordInput, cardPronunciationInput, cardBaseVerbInput, cardTagsInput, cardGeneralNotesInput, cardVideoUrlInput, aiPromptInput].forEach(input => { if (input) input.dispatchEvent(new Event('input', { bubbles: true })); });
         meaningBlocksContainer.querySelectorAll('.card-meaning-text-input, .card-meaning-notes-input').forEach(input => { if (input) input.dispatchEvent(new Event('input', { bubbles: true })); });
         addEditCardModal.classList.remove('hidden', 'opacity-0');
         addEditCardModal.querySelector('.modal-content').classList.remove('scale-95');
         addEditCardModal.querySelector('.modal-content').classList.add('scale-100');
         if (currentInputMode === 'manual') {
             cardWordInput.focus();
-        } else {
+        } else if (currentInputMode === 'json') {
             cardJsonInput.focus();
+        } else if (currentInputMode === 'ai') { // Chế độ mới
+            aiPromptInput.focus();
         }
     }
 
@@ -1217,7 +1264,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         addEditCardModal.querySelector('.modal-content').classList.add('scale-95');
         setTimeout(()=>{
             addEditCardModal.classList.add('hidden');
-            switchToInputMode('manual');
+            switchToInputMode('manual'); // Đảm bảo trở về chế độ mặc định khi đóng
         },250);
     }
 
@@ -1378,6 +1425,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             cardDataToSave.tags = cardTagsInput.value.trim().split(',').map(t => t.trim().toLowerCase()).filter(t => t && t !== 'all' && !t.startsWith('particle_'));
         } else {
             cardDataToSave.word = wordValue;
+             cardDataToSave.tags = Array.isArray(cardDataToSave.tags) ? cardDataToSave.tags.map(t => String(t).trim().toLowerCase()).filter(t => t) : [];
         }
 
 
@@ -1964,13 +2012,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                             copyBtn.innerHTML = initialCopySvg;
                             copyBtn.onclick = (e) => {
                                 e.stopPropagation();
-                                navigator.clipboard.writeText(ex.eng).then(() => {
-                                    copyBtn.innerHTML = copiedSvg;
-                                    setTimeout(() => { copyBtn.innerHTML = initialCopySvg; }, 1500);
-                                }).catch(err => {
-                                    console.error('Không thể sao chép: ', err);
-                                    showToast('Lỗi sao chép vào clipboard!', 2000, 'error');
-                                });
+                                document.execCommand('copy', false, ex.eng); // Sử dụng document.execCommand
+                                copyBtn.innerHTML = copiedSvg;
+                                setTimeout(() => { copyBtn.innerHTML = initialCopySvg; }, 1500);
                             };
                             controlsDiv.appendChild(copyBtn);
                             eP.appendChild(controlsDiv);
@@ -2053,41 +2097,200 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (flipBtn) flipBtn.disabled = window.currentData.length === 0;
     }
 
+    // Thêm prompt instructions để AI tạo ra JSON có cấu trúc chuẩn
+    const JSON_PROMPT_INSTRUCTIONS = `
+Bạn là một trợ lý tạo JSON cho flashcard tiếng Anh. Nhiệm vụ của bạn là tạo MỘT đối tượng JSON cho thẻ flashcard dựa trên từ/cụm từ/thành ngữ được cung cấp.
+**Chỉ trả về JSON hợp lệ, không thêm bất kỳ văn bản giải thích nào khác.**
+
+**Quy tắc chung:**
+- **Số lượng nghĩa và ví dụ:** AI sẽ tự động quyết định số lượng nghĩa và ví dụ dựa trên độ phổ biến và tính đa dạng của từ/cụm từ/thành ngữ. Mỗi nghĩa nên có ít nhất 1-2 ví dụ.
+- **Tiếng Việt và tiếng Anh:** Luôn cung cấp cả nghĩa tiếng Việt và ví dụ tiếng Anh + tiếng Việt.
+- **Tính đầy đủ:** Cố gắng bao gồm phát âm, ghi chú chung (generalNotes), ghi chú nghĩa (notes) nếu có, và tags phù hợp.
+- **Chỉ tập trung vào một thẻ:** AI chỉ tạo JSON cho MỘT thẻ duy nhất dựa trên input.
+
+Cấu trúc mẫu cho một đối tượng thẻ:
+{
+  "category": "verbs",
+  "word": "absorb",
+  "pronunciation": "/əbˈzɔːrb/",
+  "meanings": [
+    {
+      "text": "hấp thụ (chất lỏng, nhiệt, ánh sáng, v.v.)",
+      "notes": "liên quan đến vật lý hoặc hóa học",
+      "examples": [
+        { "eng": "Plants absorb carbon dioxide.", "vie": "Thực vật hấp thụ carbon dioxide." }
+      ]
+    },
+    {
+      "text": "tiếp thu (kiến thức, thông tin)",
+      "examples": [
+        { "eng": "It's difficult to absorb so much information at once.", "vie": "Thật khó để tiếp thu nhiều thông tin cùng lúc." }
+      ]
+    }
+  ],
+  "generalNotes": "Động từ thông dụng, có nhiều nghĩa.",
+  "tags": ["science", "learning"] // Ví dụ về tags
+}
+
+**Quy tắc cho các loại từ cụ thể:**
+- **category**: (bắt buộc) phải là một trong các giá trị: "verbs", "adjectives", "nouns", "phrasalVerbs", "collocations", "idioms".
+- **word**: (bắt buộc, nếu category là nouns/verbs/adjectives) Từ tiếng Anh.
+- **phrasalVerb**: (bắt buộc, nếu category là phrasalVerbs) Cụm động từ.
+- **collocation**: (bắt buộc, nếu category là collocations) Collocation.
+- **idiom**: (bắt buộc, nếu category là idioms) Thành ngữ.
+- **baseVerb**: (tùy chọn, nếu category là phrasalVerbs hoặc collocations) Động từ gốc.
+- **tags**: (tùy chọn, nếu category là phrasalVerbs, collocations, idioms) Mảng các chuỗi tags liên quan đến chủ đề (ví dụ: ["communication", "work", "travel"]).
+
+**Đảm bảo các điều sau:**
+- Không tạo trường 'id' cho bất kỳ đối tượng nào.
+- Đảm bảo 'meanings' là một mảng, và mỗi 'meaning' có 'text' và là tiếng Việt.
+- Đảm bảo 'examples' là một mảng, và mỗi 'example' có 'eng' và 'vie'.
+- Đảm bảo JSON hợp lệ và tuân thủ cấu trúc trên.
+- Nếu không thể tạo JSON theo yêu cầu, hãy trả về một JSON trống hoặc một mảng trống.
+- Ưu tiên tạo JSON dựa trên định nghĩa trong tiếng Anh hoặc tiếng Việt mà người dùng cung cấp, không phải chỉ dựa vào category.
+- Nếu có "tags", hãy chọn các tags có ý nghĩa và phổ biến.
+
+Người dùng muốn tạo một thẻ về:
+`;
+
+    async function generateCardJsonWithAI() {
+        const userId = getCurrentUserId();
+        if (!userId) {
+            aiPromptErrorMessage.textContent = "Vui lòng đăng nhập để tạo thẻ bằng AI.";
+            aiPromptErrorMessage.classList.remove('hidden');
+            openAuthModalFromAuth('login');
+            return;
+        }
+
+        const userPrompt = aiPromptInput.value.trim();
+        if (!userPrompt) {
+            aiPromptErrorMessage.textContent = "Vui lòng nhập từ/cụm từ/thành ngữ bạn muốn tạo thẻ.";
+            aiPromptErrorMessage.classList.remove('hidden');
+            return;
+        }
+        aiPromptErrorMessage.classList.add('hidden');
+        aiGenerationFeedback.textContent = 'Đang tạo JSON...';
+        aiGenerationFeedback.classList.remove('hidden', 'text-red-500', 'text-green-600');
+        startAiGenerationBtn.disabled = true;
+
+        try {
+            const fullPrompt = JSON_PROMPT_INSTRUCTIONS + userPrompt;
+            console.log("Sending prompt to AI:", fullPrompt);
+
+            const result = await model.generateContent(fullPrompt);
+            const responseText = result.response.text();
+
+            // Cố gắng làm sạch chuỗi phản hồi để đảm bảo nó là JSON hợp lệ
+            let cleanedJsonString = responseText.trim();
+            if (cleanedJsonString.startsWith('```json')) {
+                cleanedJsonString = cleanedJsonString.substring(7);
+            }
+            if (cleanedJsonString.endsWith('```')) {
+                cleanedJsonString = cleanedJsonString.substring(0, cleanedJsonString.length - 3);
+            }
+            cleanedJsonString = cleanedJsonString.trim();
+
+            // Kiểm tra xem phản hồi có phải là JSON hợp lệ không
+            let parsedJson;
+            try {
+                parsedJson = JSON.parse(cleanedJsonString);
+            } catch (parseError) {
+                console.error("Lỗi parse JSON từ AI:", parseError, "Chuỗi gốc:", cleanedJsonString);
+                aiGenerationFeedback.textContent = 'Lỗi: AI tạo ra JSON không hợp lệ hoặc không đúng định dạng. Vui lòng thử lại hoặc chỉnh sửa prompt.';
+                aiGenerationFeedback.classList.remove('text-green-600');
+                aiGenerationFeedback.classList.add('text-red-500');
+                return;
+            }
+
+            // Đặt JSON vào textarea để người dùng xem xét và xác nhận
+            // Nếu AI trả về mảng nhưng ta chỉ muốn 1 thẻ, lấy thẻ đầu tiên
+            const finalJson = Array.isArray(parsedJson) && parsedJson.length > 0 ? parsedJson[0] : parsedJson;
+
+            cardJsonInput.value = JSON.stringify(finalJson, null, 2);
+            aiGenerationFeedback.textContent = 'Đã tạo JSON thành công! Vui lòng kiểm tra và bấm "Xử lý JSON & Tạo Thẻ".';
+            aiGenerationFeedback.classList.remove('text-red-500');
+            aiGenerationFeedback.classList.add('text-green-600');
+
+            // Chuyển sang chế độ nhập JSON tự động
+            switchToInputMode('json');
+            jsonImportSuccessMessage.textContent = 'JSON đã được tạo bằng AI và sẵn sàng để xử lý.';
+            jsonImportSuccessMessage.classList.remove('hidden');
+
+        } catch (error) {
+            console.error("Lỗi khi gọi AI Logic:", error);
+            aiGenerationFeedback.textContent = 'Lỗi khi kết nối AI. Vui lòng kiểm tra kết nối và thử lại.';
+            aiGenerationFeedback.classList.remove('text-green-600');
+            aiGenerationFeedback.classList.add('text-red-500');
+        } finally {
+            startAiGenerationBtn.disabled = false;
+        }
+    }
+
     function switchToInputMode(mode) {
         currentInputMode = mode;
         clearAllFormErrors();
-        if (mode === 'json') {
-            addEditCardForm.style.display = 'none';
-            jsonInputArea.style.display = 'block';
-            document.getElementById('json-deck-assignment-container').style.display = 'block';
-            modalDeckAssignmentContainer.style.display = 'none';
 
-            saveCardBtn.style.display = 'none';
+        // Reset feedback
+        if (aiGenerationFeedback) {
+            aiGenerationFeedback.classList.add('hidden');
+            aiGenerationFeedback.textContent = '';
+            aiGenerationFeedback.classList.remove('text-red-500', 'text-green-600');
+        }
+        if (jsonImportErrorMessage) jsonImportErrorMessage.classList.add('hidden');
+        if (jsonImportSuccessMessage) jsonImportSuccessMessage.classList.add('hidden');
+        if (aiPromptErrorMessage) aiPromptErrorMessage.classList.add('hidden');
+
+
+        // Ẩn tất cả các khu vực nhập liệu và nút hành động chính
+        addEditCardForm.style.display = 'none';
+        jsonInputArea.style.display = 'none';
+        aiJsonPromptArea.style.display = 'none';
+        saveCardBtn.style.display = 'none';
+        processJsonBtn.style.display = 'none';
+
+        // Reset trạng thái nút chuyển chế độ
+        manualInputModeBtn.classList.remove('active');
+        jsonInputModeBtn.classList.remove('active');
+        aiGenerateJsonBtn.classList.remove('active');
+
+        // Cập nhật hiển thị dựa trên mode mới
+        if (mode === 'json') {
+            jsonInputArea.style.display = 'block';
             processJsonBtn.style.display = 'inline-flex';
-            manualInputModeBtn.classList.remove('active');
             jsonInputModeBtn.classList.add('active');
             modalTitle.textContent = 'Nhập thẻ từ JSON';
-            cardJsonInput.value = '';
-            jsonImportErrorMessage.classList.add('hidden');
-            jsonImportSuccessMessage.classList.add('hidden');
+            // Vẫn giữ giá trị của cardJsonInput.value để người dùng có thể xem lại hoặc sửa
             jsonCardDeckAssignmentSelect.value = cardDeckAssignmentSelect.value;
-
-        } else {
+        } else if (mode === 'ai') { // Chế độ mới cho AI
+            aiJsonPromptArea.style.display = 'block';
+            aiGenerateJsonBtn.classList.add('active');
+            modalTitle.textContent = 'AI tạo JSON';
+            startAiGenerationBtn.disabled = false; // Đảm bảo nút không bị disabled
+            // Nếu người dùng chuyển từ AI sang JSON, chúng ta muốn họ vẫn dùng cùng bộ thẻ
+            aiCardDeckAssignmentSelect.value = cardDeckAssignmentSelect.value;
+        }
+        else { // mode === 'manual'
             addEditCardForm.style.display = 'block';
-            jsonInputArea.style.display = 'none';
-            document.getElementById('json-deck-assignment-container').style.display = 'none';
-            if (cardSourceSelect.value === 'user') {
-                 modalDeckAssignmentContainer.style.display = 'block';
-            } else {
-                 modalDeckAssignmentContainer.style.display = 'none';
-            }
-
             saveCardBtn.style.display = 'inline-flex';
-            processJsonBtn.style.display = 'none';
             manualInputModeBtn.classList.add('active');
-            jsonInputModeBtn.classList.remove('active');
             modalTitle.textContent = currentEditingCardId ? 'Sửa thẻ' : 'Thêm thẻ mới';
-            cardDeckAssignmentSelect.value = jsonCardDeckAssignmentSelect.value;
+            cardDeckAssignmentSelect.value = jsonCardDeckAssignmentSelect.value; // Đồng bộ lựa chọn deck
+        }
+
+        // Điều chỉnh hiển thị dropdown chọn deck cho từng mode
+        if (currentInputMode === 'json' || currentInputMode === 'ai') {
+            document.getElementById('json-deck-assignment-container').style.display = 'block';
+            modalDeckAssignmentContainer.style.display = 'none';
+            document.getElementById('ai-deck-assignment-container').style.display = (currentInputMode === 'ai' ? 'block' : 'none'); // Chỉ hiển thị nếu là AI mode
+            document.getElementById('json-deck-assignment-container').style.display = (currentInputMode === 'json' ? 'block' : 'none'); // Chỉ hiển thị nếu là JSON mode
+        } else { // manual
+            document.getElementById('json-deck-assignment-container').style.display = 'none';
+            document.getElementById('ai-deck-assignment-container').style.display = 'none';
+            if (cardSourceSelect.value === 'user') {
+                modalDeckAssignmentContainer.style.display = 'block';
+            } else {
+                modalDeckAssignmentContainer.style.display = 'none';
+            }
         }
     }
 
@@ -2615,7 +2818,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         const iframeContainer = document.createElement('div');
                         iframeContainer.className = 'video-iframe-container w-full';
                         const iframe = document.createElement('iframe');
-                        iframe.src = `https://www.youtube.com/embed/$${videoId}`;
+                        iframe.src = `https://www.youtube.com/embed/${videoId}`; // Đã sửa lỗi URL ở đây
                         iframe.title = "YouTube video player";
                         iframe.frameBorder = "0";
                         iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
@@ -2641,7 +2844,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                      const youtubeSearchTerm = `học từ ${baseSearchTerm}`;
                      searchButton.innerHTML = `<i class="fab fa-youtube mr-2"></i> Tìm trên YouTube với từ khóa "${baseSearchTerm}"`;
                      searchButton.onclick = () => {
-                         window.open(`https://www.youtube.com/results?search_query=$${encodeURIComponent(youtubeSearchTerm)}`, '_blank');
+                         window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(youtubeSearchTerm)}`, '_blank'); // Đã sửa lỗi URL ở đây
                      };
                      searchButtonContainer.appendChild(searchButton);
                      youtubeContentDiv.appendChild(searchButtonContainer);
@@ -2673,9 +2876,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function extractYouTubeVideoId(url) {
         if (!url) return null;
-        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        // Đã sửa regex để khớp với các URL YouTube thông thường
+        const regExp = /(?:https?:\/\/)?(?:www\.)?(?:m\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=|embed\/|v\/|)([\w-]{11})(?:\S+)?/;
         const match = url.match(regExp);
-        return (match && match[2] && match[2].length === 11) ? match[2] : null;
+        return (match && match[1] && match[1].length === 11) ? match[1] : null;
     }
 
     function initializeCustomExerciseInteractions(container) {
@@ -2918,6 +3122,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (processJsonBtn) {
             processJsonBtn.addEventListener('click', processAndSaveJsonCards);
         }
+        // Event listeners cho AI Generation
+        if (aiGenerateJsonBtn) {
+            aiGenerateJsonBtn.addEventListener('click', () => switchToInputMode('ai'));
+        }
+        if (startAiGenerationBtn) {
+            startAiGenerationBtn.addEventListener('click', generateCardJsonWithAI);
+        }
+        if (aiPromptInput) {
+            aiPromptInput.addEventListener('input', () => clearFieldError(aiPromptInput, aiPromptErrorMessage));
+        }
+
 
         if (closeCopyToDeckModalBtn) {
             closeCopyToDeckModalBtn.addEventListener('click', closeCopyToDeckModal);
@@ -2991,7 +3206,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if(baseVerbSelect) baseVerbSelect.addEventListener('change', ()=>applyAllFilters(false));
         if(tagSelect) tagSelect.addEventListener('change', ()=>applyAllFilters(false));
         if(searchInput) searchInput.addEventListener('input', ()=>applyAllFilters(false));
-        if(filterCardStatusSelect) filterCardStatusSelect.addEventListener('change', ()=>applyAllFilters(false));
+        if(filterCardStatusSelect) filterCardCardStatusSelect.addEventListener('change', ()=>applyAllFilters(false));
 
 
         if(flipBtn) flipBtn.addEventListener('click', ()=>{
