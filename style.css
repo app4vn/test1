@@ -140,6 +140,19 @@ body {
     background-color: #c7d2fe; 
 }
 
+/* Specific styling for AI button if desired */
+#ai-generate-json-btn:not(.active) {
+    background-color: #f3e8ff; /* purple-100 */
+    color: #7e22ce; /* purple-800 */
+}
+#ai-generate-json-btn:not(.active):hover {
+    background-color: #e9d5ff; /* purple-200 */
+}
+#ai-generate-json-btn.active {
+    background-color: #9333ea; /* purple-600 */
+    color: white;
+}
+
 /* CSS cho Bottom Sheet */
 #bottom-sheet-overlay.active {
     opacity: 1;
