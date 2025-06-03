@@ -807,7 +807,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function createClearButtonForInput(inputElement) { let clearBtn = inputElement.parentNode.querySelector('.input-clear-btn'); if (clearBtn) { clearBtn.style.display = inputElement.value ? 'block' : 'none'; return clearBtn; } clearBtn = document.createElement('button'); clearBtn.type = 'button'; clearBtn.className = 'input-clear-btn'; clearBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>`; clearBtn.setAttribute('aria-label', 'Xóa nội dung'); clearBtn.style.display = inputElement.value ? 'block' : 'none'; clearBtn.addEventListener('click', (e) => { e.stopPropagation(); const oldValue = inputElement.value; inputElement.value = ''; clearBtn.style.display = 'none'; inputElement.focus(); if (oldValue !== '') { inputElement.dispatchEvent(new Event('input', { bubbles: true })); } }); inputElement.addEventListener('input', () => { clearBtn.style.display = inputElement.value ? 'block' : 'none'; }); if(inputElement.parentNode.classList.contains('relative')) { inputElement.parentNode.appendChild(clearBtn); } return clearBtn; }
-    function initializeClearButtonsForModal() { const inputsWithClear = [ cardWordInput, cardPronunciationInput, cardBaseVerbInput, cardTagsInput, cardGeneralNotesInput, cardVideoUrlInput, aiPromptInput ]; inputsWithClear.forEach(inputEl => { if (inputEl && inputEl.parentNode.classList.contains('relative')) { createClearButtonForInput(inputEl); } }); meaningBlocksContainer.querySelectorAll('.card-meaning-text-input, .card-meaning-notes-input').forEach(input => { if (input && input.parentNode.classList.contains('relative')) createClearButtonForInput(input); }); }
+    function initializeClearButtonsForModal() { const inputsWithClear = [ cardWordInput, cardPronunciationInput, cardBaseVerbInput, cardTagsInput, cardGeneralNotesInput, cardVideoUrlInput, aiPromptInput ]; inputsWithClear.forEach(inputEl => { if (inputEl && inputEl.parentNode.classList.contains('relative')) { createClearButtonForInput(inputEl); } }); meaningBlocksContainer.querySelectorAll('.card-meaning-text-input, .card-meaning-notes-input').forEach(input => { if (input) input.dispatchEvent(new Event('input', { bubbles: true })); }); }
     function initializeClearButtonForSearch() { if (searchInput && searchInput.parentNode.classList.contains('relative')) { createClearButtonForInput(searchInput); } }
 
     function createExampleEntryElement(exampleData = { id: generateUniqueId('ex'), eng: '', vie: '', exampleNotes: '' }) { const exampleEntryDiv = document.createElement('div'); exampleEntryDiv.className = 'example-entry space-y-1'; exampleEntryDiv.dataset.exampleId = exampleData.id || generateUniqueId('ex'); exampleEntryDiv.innerHTML = `<div class="flex justify-between items-center"><label class="block text-xs font-medium text-slate-500">Ví dụ Tiếng Anh</label><button type="button" class="remove-example-entry-btn text-red-400 hover:text-red-600 text-xs remove-entry-btn" title="Xóa ví dụ này"><i class="fas fa-times-circle"></i> Xóa</button></div><textarea rows="2" class="card-example-eng-input block w-full p-1.5 border border-slate-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" placeholder="Câu ví dụ (Tiếng Anh)">${exampleData.eng}</textarea><label class="block text-xs font-medium text-slate-500 mt-1">Nghĩa ví dụ (Tiếng Việt - tùy chọn)</label><textarea rows="1" class="card-example-vie-input block w-full p-1.5 border border-slate-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" placeholder="Nghĩa tiếng Việt của ví dụ">${exampleData.vie}</textarea><label class="block text-xs font-medium text-slate-500 mt-1">Ghi chú cho ví dụ này (tùy chọn)</label><textarea rows="1" class="card-example-notes-input block w-full p-1.5 border border-slate-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" placeholder="Ghi chú cho ví dụ">${exampleData.exampleNotes || ''}</textarea>`; exampleEntryDiv.querySelector('.remove-example-entry-btn').addEventListener('click', function() { this.closest('.example-entry').remove(); }); return exampleEntryDiv; }
@@ -1186,7 +1186,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             else {
                 modalDeckAssignmentContainer.style.display = 'block';
                 document.getElementById('json-deck-assignment-container').style.display = 'none';
-                document.getElementById('ai-deck-assignment-container').style.display = 'none';
+                document.getElementById('ai-deck-assignment-container').style.display = 'none'; // Ẩn cả AI deck container
             }
 
             if (mode === 'edit' && cardData && cardData.deckId) {
@@ -2279,10 +2279,9 @@ Người dùng muốn tạo một thẻ về:
 
         // Điều chỉnh hiển thị dropdown chọn deck cho từng mode
         if (currentInputMode === 'json' || currentInputMode === 'ai') {
-            document.getElementById('json-deck-assignment-container').style.display = 'block';
-            modalDeckAssignmentContainer.style.display = 'none';
-            document.getElementById('ai-deck-assignment-container').style.display = (currentInputMode === 'ai' ? 'block' : 'none'); // Chỉ hiển thị nếu là AI mode
             document.getElementById('json-deck-assignment-container').style.display = (currentInputMode === 'json' ? 'block' : 'none'); // Chỉ hiển thị nếu là JSON mode
+            document.getElementById('ai-deck-assignment-container').style.display = (currentInputMode === 'ai' ? 'block' : 'none'); // Chỉ hiển thị nếu là AI mode
+            modalDeckAssignmentContainer.style.display = 'none'; // Ẩn manual deck container
         } else { // manual
             document.getElementById('json-deck-assignment-container').style.display = 'none';
             document.getElementById('ai-deck-assignment-container').style.display = 'none';
@@ -2310,7 +2309,17 @@ Người dùng muốn tạo một thẻ về:
             return;
         }
 
-        const selectedDeckId = jsonCardDeckAssignmentSelect.value;
+        // Lấy deckId từ chế độ AI hoặc JSON, tùy thuộc vào chế độ hiện tại
+        let selectedDeckId;
+        if (currentInputMode === 'json') {
+            selectedDeckId = jsonCardDeckAssignmentSelect.value;
+        } else if (currentInputMode === 'ai') {
+            selectedDeckId = aiCardDeckAssignmentSelect.value;
+        } else {
+            selectedDeckId = cardDeckAssignmentSelect.value; // Fallback, mặc dù không nên xảy ra
+        }
+
+
         if (!selectedDeckId) {
             jsonImportErrorMessage.textContent = "Vui lòng chọn một bộ thẻ để gán các thẻ này vào.";
             jsonImportErrorMessage.classList.remove('hidden');
@@ -2376,7 +2385,7 @@ Người dùng muốn tạo một thẻ về:
                 generalNotes: cardJsonClean.generalNotes || '',
                 videoUrl: cardJsonClean.videoUrl || null,
                 category: cardJsonClean.category,
-                deckId: selectedDeckId,
+                deckId: selectedDeckId, // Sử dụng selectedDeckId đã lấy ở trên
                 isUserCard: true,
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp()
@@ -3206,7 +3215,7 @@ Người dùng muốn tạo một thẻ về:
         if(baseVerbSelect) baseVerbSelect.addEventListener('change', ()=>applyAllFilters(false));
         if(tagSelect) tagSelect.addEventListener('change', ()=>applyAllFilters(false));
         if(searchInput) searchInput.addEventListener('input', ()=>applyAllFilters(false));
-        if(filterCardStatusSelect) filterCardCardStatusSelect.addEventListener('change', ()=>applyAllFilters(false));
+        if(filterCardStatusSelect) filterCardStatusSelect.addEventListener('change', ()=>applyAllFilters(false));
 
 
         if(flipBtn) flipBtn.addEventListener('click', ()=>{
