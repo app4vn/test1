@@ -150,7 +150,6 @@ function getCardIdentifier(item){
     return `${category}-${sanitizedKeyPart}`;
 }
 
-// Hàm tạo ID cho Bài giảng (ĐÃ SỬA)
 function generateCardLectureId(cardItem) {
     if (!cardItem) return `unknown-lecture-${generateUniqueId('uid')}`;
     let keyPart;
@@ -165,11 +164,9 @@ function generateCardLectureId(cardItem) {
     if (!keyPart) return `${category}-unknown-${generateUniqueId('lecturekey')}`;
 
     const sanitizedKeyPart = String(keyPart).toLowerCase().replace(/\s+/g, '-').replace(/[().,/?!"':]/g, '').replace(/[^a-z0-9-]/g, '');
-    // Bỏ tiền tố "lecture-" để quay lại định dạng ID cũ cho bài giảng
     return `${category}-${sanitizedKeyPart}`; 
 }
 
-// Hàm tạo ID cho Bài tập tùy chỉnh
 function generateCardExerciseId(cardItem) {
     if (!cardItem) return `unknown-exercise-${generateUniqueId('uid')}`;
     let keyPart;
@@ -184,7 +181,6 @@ function generateCardExerciseId(cardItem) {
     if (!keyPart) return `${category}-unknown-${generateUniqueId('exercisekey')}`;
 
     const sanitizedKeyPart = String(keyPart).toLowerCase().replace(/\s+/g, '-').replace(/[().,/?!"':]/g, '').replace(/[^a-z0-9-]/g, '');
-    // Giữ lại tiền tố "exercise-" cho bài tập để phân biệt với bài giảng nếu cần
     return `exercise-${category}-${sanitizedKeyPart}`; 
 }
 
@@ -2415,8 +2411,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         } else if (viewType === 'lecture') {
             bottomSheet.classList.add('bottom-sheet-lecture-mode');
-            const cardLectureId = generateCardLectureId(cardItem); // Sử dụng hàm đã sửa
-            console.log("Attempting to load lecture with ID:", cardLectureId); // Log ID
+            const cardLectureId = generateCardLectureId(cardItem); 
+            console.log("Attempting to load lecture with ID:", cardLectureId); 
             const lectureTitlePrefix = "Bài giảng: ";
             bottomSheetTitle.textContent = `${lectureTitlePrefix}${cardTerm.length > 20 ? cardTerm.substring(0,17) + '...' : cardTerm}`;
             bottomSheetContent.innerHTML = '<p class="text-slate-400 dark:text-slate-300 p-4 text-center">Đang tải bài giảng...</p>';
@@ -2685,9 +2681,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function initializeCustomExerciseInteractions(container) {
         if (!container) return;
         console.log("Initializing custom exercise interactions for container:", container);
-        // Hiện tại, logic xử lý chung đã được đặt trong event listener của bottomSheetContent
-        // Bạn có thể thêm logic khởi tạo cụ thể cho từng loại bài tập ở đây nếu cần,
-        // ví dụ, khởi tạo thư viện kéo thả, v.v.
+        // Logic xử lý chung đã được chuyển vào event listener của bottomSheetContent
     }
 
     if (bottomSheetContent) {
@@ -2705,17 +2699,60 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 if (!input || !feedbackArea || !correctAnswerEl) {
                     console.warn("Missing elements for fill-in-the-blank check in:", exerciseContainer);
+                    if(feedbackArea) feedbackArea.textContent = "Lỗi cấu trúc bài tập.";
                     return;
                 }
                 const correctAnswer = correctAnswerEl.textContent;
+                feedbackArea.textContent = ''; // Xóa phản hồi cũ
 
                 if (input.value.trim().toLowerCase() === correctAnswer.toLowerCase()) {
                     feedbackArea.textContent = "Chính xác!";
-                    feedbackArea.className = 'text-green-600 dark:text-green-400 mt-2';
+                    feedbackArea.className = 'text-green-600 dark:text-green-400 mt-2 text-sm';
                 } else {
-                    feedbackArea.textContent = `Sai rồi. Đáp án đúng là: ${correctAnswer}`;
-                    feedbackArea.className = 'text-red-600 dark:text-red-400 mt-2';
+                    feedbackArea.textContent = `Sai rồi. Đáp án đúng là: "${correctAnswer}"`;
+                    feedbackArea.className = 'text-red-600 dark:text-red-400 mt-2 text-sm';
                 }
+            } else if (action === 'check-mcq-sentence') {
+                const feedbackArea = exerciseContainer.querySelector('[data-feedback-area]');
+                const correctAnswer = target.dataset.correctChoice; // 'target' ở đây là nút button
+                const selectedOption = exerciseContainer.querySelector('input[name="mcq_make_up_for_usage"]:checked');
+                
+                if (!feedbackArea) {
+                    console.warn("Missing feedback area for MCQ check in:", exerciseContainer);
+                    return;
+                }
+                feedbackArea.textContent = ''; // Xóa phản hồi cũ
+
+                if (selectedOption) {
+                    if (selectedOption.value === correctAnswer) {
+                        feedbackArea.textContent = "Chính xác! 'Make up for' trong câu này có nghĩa là bù đắp, đền bù.";
+                        feedbackArea.className = 'text-green-600 dark:text-green-400 mt-2 text-sm';
+                    } else {
+                        feedbackArea.textContent = "Chưa đúng. Hãy xem lại các lựa chọn và nghĩa của 'make up for'.";
+                        feedbackArea.className = 'text-red-600 dark:text-red-400 mt-2 text-sm';
+                    }
+                } else {
+                    feedbackArea.textContent = "Vui lòng chọn một đáp án.";
+                    feedbackArea.className = 'text-yellow-600 dark:text-yellow-400 mt-2 text-sm';
+                }
+            } else if (action === 'check-rewrite') {
+                const feedbackArea = exerciseContainer.querySelector('[data-feedback-area]');
+                const suggestedAnswerEl = feedbackArea.querySelector('[data-suggested-answer]');
+                 if (!feedbackArea || !suggestedAnswerEl) {
+                    console.warn("Missing elements for rewrite check in:", exerciseContainer);
+                    return;
+                }
+                suggestedAnswerEl.style.display = 'block'; 
+                feedbackArea.className = 'text-slate-500 dark:text-slate-400 mt-2 text-sm'; // Đảm bảo class đúng
+            } else if (action === 'show-example-sentence-creation') {
+                const feedbackArea = exerciseContainer.querySelector('[data-feedback-area]');
+                const exampleSentenceEl = feedbackArea.querySelector('[data-example-sentence]');
+                 if (!feedbackArea || !exampleSentenceEl) {
+                    console.warn("Missing elements for sentence creation example in:", exerciseContainer);
+                    return;
+                }
+                exampleSentenceEl.style.display = 'block'; 
+                feedbackArea.className = 'text-slate-500 dark:text-slate-400 mt-2 text-sm'; // Đảm bảo class đúng
             }
         });
     }
